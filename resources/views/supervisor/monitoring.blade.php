@@ -196,10 +196,13 @@
 
     {{-- Monitoring --}}
     <td>
-        <a href="{{ route('supervisor.monitoring.show', $task->id) }}"
-           class="btn btn-sm btn-primary">
-           <i class="fas fa-eye"></i>
-        </a>
+        <button type="button"
+        class="btn btn-sm btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#detailTaskModal{{ $task->id }}">
+    <i class="fas fa-eye"></i>
+</button>
+
 
         <a href="{{ route('supervisor.monitoring.comment', $task->id) }}"
            class="btn btn-sm btn-warning">
@@ -207,6 +210,64 @@
         </a>
     </td>
 </tr>
+
+<!-- Modal Detail Tugas -->
+<div class="modal fade" id="detailTaskModal{{ $task->id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-tasks me-2 text-primary"></i>
+                    {{ $task->task_name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-2">
+                    <strong>Divisi:</strong>
+                    {{ $task->pic->division->name ?? '-' }}
+                </div>
+
+                <div class="mb-2">
+                    <strong>PIC:</strong>
+                    {{ $task->pic->name ?? '-' }}
+                </div>
+
+                <div class="mb-2">
+                    <strong>Progress:</strong>
+                    {{ $task->progress }}%
+                </div>
+
+                <div class="mb-2">
+                    <strong>Status:</strong>
+                    <span class="badge bg-info">
+                        {{ ucfirst($task->status) }}
+                    </span>
+                </div>
+
+                <hr>
+
+                <h6 class="fw-bold">Deskripsi Tugas</h6>
+                <p class="text-muted">
+                    {{ $task->description ?? 'Tidak ada deskripsi tugas.' }}
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary btn-sm"
+                        data-bs-dismiss="modal">
+                    Tutup
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
 @endforeach
 </tbody>
                 </table>

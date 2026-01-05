@@ -48,10 +48,11 @@ class User extends Authenticatable
         ];
     }
 
-    public function division()
-    {
-        return $this->belongsTo(Division::class);
-    }
+   public function division()
+{
+    return $this->belongsTo(Division::class, 'division_id');
+}
+
 
     public function taskReports()
 {
