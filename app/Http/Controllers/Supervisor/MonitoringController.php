@@ -59,6 +59,23 @@ class MonitoringController extends Controller
         return back()->with('success','Feedback dikirim');
     }
 
+    public function storeComment(Request $request, $id)
+{
+    $request->validate([
+        'comment' => 'required|string|max:1000',
+    ]);
+
+    // PERBAIKAN: Ganti Task menjadi TaskReport
+    $task = \App\Models\TaskReport::findOrFail($id);
+
+    // Sesuaikan dengan kolom di database Anda (sepertinya 'feedback')
+    $task->update([
+        'feedback' => $request->comment 
+    ]);
+
+    return back()->with('success', 'Komentar berhasil ditambahkan!');
+}
+
     public function revision(Request $request, TaskReport $task)
     {
         $request->validate([

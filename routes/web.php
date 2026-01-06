@@ -92,7 +92,7 @@ Route::middleware(['auth', 'role:supervisor'])
         Route::get('/monitoring/{task}', [MonitoringController::class, 'show'])
             ->name('monitoring.show');
 
-        Route::post('/monitoring/{task}/comment', [MonitoringController::class, 'comment'])
+        Route::post('/monitoring/{id}/comment', [MonitoringController::class, 'storeComment'])
     ->name('monitoring.comment');
 
         Route::post('/monitoring/{task}/revision', [MonitoringController::class, 'revision'])

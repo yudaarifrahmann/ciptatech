@@ -12,3 +12,4 @@ class MonitoringController extends Controller
         return view('superadmin.monitoring.index');
     }
 }
+

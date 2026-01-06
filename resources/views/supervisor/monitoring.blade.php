@@ -202,17 +202,43 @@
     <i class="fas fa-eye"></i>
 </button>
 
-
-        <a href="{{ route('supervisor.monitoring.comment', $task->id) }}"
-           class="btn btn-sm btn-warning">
-           <i class="fas fa-comment"></i>
-        </a>
+       <button type="button" 
+        class="btn btn-sm btn-warning" 
+        data-bs-toggle="modal" 
+        data-bs-target="#modalKomentar{{ $task->id }}">
+    <i class="fas fa-comment"></i>
+</button>
     </td>
 </tr>
 
+<!-- Modal Komentar -->
+<div class="modal fade" id="modalKomentar{{ $task->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Beri Komentar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('supervisor.monitoring.comment', $task->id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Isi Komentar</label>
+                        <textarea class="form-control" name="comment" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Komentar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Detail Tugas -->
 <div class="modal fade" id="detailTaskModal{{ $task->id }}" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered ">
         <div class="modal-content border-0 shadow">
 
             <div class="modal-header">
@@ -258,9 +284,20 @@
                             @endphp
                             
                             @if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']))
-                                <div class="ratio ratio-16x9">
-                                    <img src="{{ $mediaUrl }}" class="img-fluid rounded" alt="Foto Bukti Tugas">
-                                </div>
+                               <div class="ratio ratio-16x9 mb-2">
+    <img src="{{ $mediaUrl }}" 
+         class="img-fluid rounded img-preview-trigger" 
+         alt="Bukti Tugas"
+         onclick="showImagePreview('{{ $mediaUrl }}', '{{ $task->task_name }}')">
+</div>
+<div class="text-center">
+    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" onclick="showImagePreview('{{ $mediaUrl }}', '{{ $task->task_name }}')">
+        <i class="fas fa-search-plus me-1"></i> Perbesar Gambar
+    </button>
+</div>
+<small class="text-muted mt-1 d-block">
+    <i class="fas fa-search-plus me-1"></i>Klik gambar untuk memperbesar
+</small>
                                 <small class="text-muted mt-1 d-block">Tipe: Foto</small>
                             @elseif (in_array($extension, ['mp4', 'webm', 'ogg']))
                                 <div class="ratio ratio-16x9">
@@ -319,7 +356,7 @@
                     Tutup
                 </button>
             </div>
-
+           
         </div>
     </div>
 </div>
@@ -675,5 +712,99 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+// Tambahkan ini di dalam blok <script> Anda
+
+function showImagePreview(imageUrl, title) {
+    const imgTarget = document.getElementById('previewImageTarget');
+    const titleTarget = document.getElementById('previewImageTitle');
+    
+    // Ganti source gambar
+    imgTarget.src = imageUrl;
+    
+    // Ganti judul modal jika ada
+    if(title) {
+        titleTarget.innerHTML = `<i class="fas fa-image me-2 text-primary"></i> ${title}`;
+    }
+
+    // Munculkan modal
+    const previewModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+    previewModal.show();
+}
 </script>
+<div class="modal fade" id="imagePreviewModal" tabindex="-3" aria-hidden="true" style="z-index: 2050;">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom-0 pb-0">
+                <h6 class="modal-title fw-bold text-dark" id="previewImageTitle">
+                    <i class="fas fa-image me-2 text-primary"></i>Pratinjau Foto
+                </h6>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-3 text-center">
+                <div class="img-container bg-light rounded p-2 border">
+                    <img id="previewImageTarget" src="" 
+                         class="img-fluid rounded" 
+                         style="max-height: 65vh; width: auto; object-fit: contain;">
+                </div>
+            </div>
+            
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Overlay latar belakang (backdrop) dibuat agak putih transparan */
+    #imagePreviewModal .modal-backdrop {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    #imagePreviewModal .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    /* Memastikan gambar tidak kebesaran dan tidak pecah */
+    #previewImageTarget {
+        /* 65vh artinya 65% dari tinggi layar, jadi header & footer modal tetap kelihatan */
+        max-height: 65vh !important;
+        display: inline-block;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .img-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+    }
+
+    /* Efek hover pada gambar di tabel detail */
+    .img-preview-trigger {
+        cursor: zoom-in;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .img-preview-trigger:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+</style>
+
 @endsection
