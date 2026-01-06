@@ -42,74 +42,73 @@
         </div>
         
         <!-- Quick Stats -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-primary">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Tugas</h6>
-                            <h2 class="fw-bold mb-0">24</h2>
-                            <small class="text-muted">Aktif: 18</small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-tasks fa-2x text-primary opacity-75"></i>
-                        </div>
-                    </div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-primary">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Total Tugas</h6>
+                    <h2 class="fw-bold mb-0">{{ $totalTasks }}</h2>
+                    <small class="text-muted">Aktif: {{ $tasks->where('status','!=','Tuntas')->count() }}</small>
                 </div>
-            </div>
-            
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-warning">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Menunggu Review</h6>
-                            <h2 class="fw-bold mb-0">8</h2>
-                            <small class="text-warning">
-                                <i class="fas fa-clock me-1"></i>Perlu ditinjau
-                            </small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-clock-rotate-left fa-2x text-warning opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-success">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Tuntas</h6>
-                            <h2 class="fw-bold mb-0">12</h2>
-                            <small class="text-success">
-                                <i class="fas fa-check-circle me-1"></i>On schedule
-                            </small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-check-double fa-2x text-success opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-info">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Progress Rata-rata</h6>
-                            <h2 class="fw-bold mb-0">78%</h2>
-                            <small class="text-info">
-                                <i class="fas fa-chart-line me-1"></i>+5% dari minggu lalu
-                            </small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-percent fa-2x text-info opacity-75"></i>
-                        </div>
-                    </div>
+                <div class="stat-icon">
+                    <i class="fas fa-tasks fa-2x text-primary opacity-75"></i>
                 </div>
             </div>
         </div>
     </div>
+    
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Menunggu Review</h6>
+                    <h2 class="fw-bold mb-0">{{ $waitingReview }}</h2>
+                    <small class="text-warning">
+                        <i class="fas fa-clock me-1"></i>Perlu ditinjau
+                    </small>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-clock-rotate-left fa-2x text-warning opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Tuntas</h6>
+                    <h2 class="fw-bold mb-0">{{ $completed }}</h2>
+                    <small class="text-success">
+                        <i class="fas fa-check-circle me-1"></i>On schedule
+                    </small>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-check-double fa-2x text-success opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Progress Rata-rata</h6>
+                    <h2 class="fw-bold mb-0">{{ round($averageProgress) }}%</h2>
+                    <small class="text-info">
+                        <i class="fas fa-chart-line me-1"></i>Rata-rata progress
+                    </small>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-percent fa-2x text-info opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Main Content -->
     <div class="card border-0 shadow-sm">
@@ -225,26 +224,66 @@
             </div>
 
             <div class="modal-body">
-                <div class="mb-2">
-                    <strong>Divisi:</strong>
-                    {{ $task->pic->division->name ?? '-' }}
-                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <strong>Divisi:</strong>
+                            {{ $task->pic->division->name ?? '-' }}
+                        </div>
 
-                <div class="mb-2">
-                    <strong>PIC:</strong>
-                    {{ $task->pic->name ?? '-' }}
-                </div>
+                        <div class="mb-2">
+                            <strong>PIC:</strong>
+                            {{ $task->pic->name ?? '-' }}
+                        </div>
 
-                <div class="mb-2">
-                    <strong>Progress:</strong>
-                    {{ $task->progress }}%
-                </div>
+                        <div class="mb-2">
+                            <strong>Progress:</strong>
+                            {{ $task->progress }}%
+                        </div>
 
-                <div class="mb-2">
-                    <strong>Status:</strong>
-                    <span class="badge bg-info">
-                        {{ ucfirst($task->status) }}
-                    </span>
+                        <div class="mb-2">
+                            <strong>Status:</strong>
+                            <span class="badge bg-{{ $task->status == 'Tuntas' ? 'success' : ($task->status == 'menunggu review' ? 'info' : 'warning') }}">
+                                {{ ucfirst($task->status) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 border-start">
+                        <h6 class="fw-bold">File Pendukung</h6>
+                        @if ($task->file_path)
+                            @php
+                                $extension = pathinfo($task->file_path, PATHINFO_EXTENSION);
+                                $mediaUrl = asset('storage/' . $task->file_path); // Sesuaikan dengan disk storage Anda
+                            @endphp
+                            
+                            @if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']))
+                                <div class="ratio ratio-16x9">
+                                    <img src="{{ $mediaUrl }}" class="img-fluid rounded" alt="Foto Bukti Tugas">
+                                </div>
+                                <small class="text-muted mt-1 d-block">Tipe: Foto</small>
+                            @elseif (in_array($extension, ['mp4', 'webm', 'ogg']))
+                                <div class="ratio ratio-16x9">
+                                    <video controls class="embed-responsive-item rounded">
+                                        <source src="{{ $mediaUrl }}" type="video/{{ $extension }}">
+                                        Browser Anda tidak mendukung tag video.
+                                    </video>
+                                </div>
+                                <small class="text-muted mt-1 d-block">Tipe: Video</small>
+                            @else
+                                <p class="text-warning">
+                                    <i class="fas fa-file me-1"></i>
+                                    File tidak dapat ditampilkan ({{ strtoupper($extension) }}).
+                                </p>
+                                <a href="{{ $mediaUrl }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-download me-1"></i> Unduh File
+                                </a>
+                            @endif
+                        @else
+                            <p class="text-muted fst-italic">Tidak ada file pendukung dilampirkan.</p>
+                        @endif
+                    </div>
+
                 </div>
 
                 <hr>
@@ -256,6 +295,24 @@
             </div>
 
             <div class="modal-footer">
+             @if (strtolower($task->status) == 'menunggu review')
+                    
+                    <button type="button" 
+                            class="btn btn-warning btn-sm update-status-btn"
+                            data-task-id="{{ $task->id }}"
+                            data-new-status="progress"> 
+                        <i class="fas fa-undo me-1"></i> Revisi
+                    </button>
+
+                    <button type="button" 
+                            class="btn btn-success btn-sm update-status-btn"
+                            data-task-id="{{ $task->id }}"
+                            data-new-status="selesai"> 
+                        <i class="fas fa-check me-1"></i> Tuntas
+                    </button>
+                
+                @endif
+                
                 <button type="button"
                         class="btn btn-secondary btn-sm"
                         data-bs-dismiss="modal">
@@ -266,7 +323,6 @@
         </div>
     </div>
 </div>
-
 
 @endforeach
 </tbody>
@@ -536,57 +592,88 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-     
-        const tableRows = document.querySelectorAll('tbody tr');
-        tableRows.forEach(row => {
-            row.style.cursor = 'pointer';
-            row.addEventListener('click', function(e) {
-                if (!e.target.closest('.btn') && !e.target.closest('.badge')) {
-                    const taskName = this.querySelector('.task-info strong').textContent;
-                    const division = this.querySelector('.division-icon + div strong').textContent;
-                    console.log(`View monitoring details for ${taskName} (${division})`);
-                }
-            });
-        });
-        
-        const filterItems = document.querySelectorAll('.dropdown-item');
-        filterItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const filterType = this.closest('.dropdown-menu').previousElementSibling.textContent;
-                const filterValue = this.textContent;
-                console.log(`Filter ${filterType}: ${filterValue}`);
-               
-                filterItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        
-        const exportBtn = document.querySelector('.btn-primary');
-        if (exportBtn && exportBtn.textContent.includes('Export')) {
-            exportBtn.addEventListener('click', function() {
-                console.log('Export monitoring data');
-                // 
-            });
-        }
-        const progressBars = document.querySelectorAll('.progress-bar');
-        progressBars.forEach(bar => {
-            const value = parseInt(bar.style.width);
-            if (value < 30) {
-                bar.className = 'progress-bar bg-danger';
-            } else if (value < 70) {
-                bar.className = 'progress-bar bg-warning';
-            } else if (value < 100) {
-                bar.className = 'progress-bar bg-info';
-            } else {
-                bar.className = 'progress-bar bg-success';
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function(e) {
+            if (!e.target.closest('.btn') && !e.target.closest('.badge')) {
+                const taskName = this.querySelector('.task-info strong').textContent;
+                const division = this.querySelector('.division-icon + div strong').textContent;
+                console.log(`View monitoring details for ${taskName} (${division})`);
             }
         });
     });
+
+    const filterItems = document.querySelectorAll('.dropdown-item');
+    filterItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filterType = this.closest('.dropdown-menu').previousElementSibling.textContent;
+            const filterValue = this.textContent;
+            console.log(`Filter ${filterType}: ${filterValue}`);
+
+            filterItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    const exportBtn = document.querySelector('.btn-primary');
+    if (exportBtn && exportBtn.textContent.includes('Export')) {
+        exportBtn.addEventListener('click', function() {
+            console.log('Export monitoring data');
+        });
+    }
+
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const value = parseInt(bar.style.width);
+        if (value < 30) {
+            bar.className = 'progress-bar bg-danger';
+        } else if (value < 70) {
+            bar.className = 'progress-bar bg-warning';
+        } else if (value < 100) {
+            bar.className = 'progress-bar bg-info';
+        } else {
+            bar.className = 'progress-bar bg-success';
+        }
+    });
+
+    document.querySelectorAll('.update-status-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const taskId = this.getAttribute('data-task-id');
+            const newStatus = this.getAttribute('data-new-status');
+
+            if (confirm(`Apakah Anda yakin ingin mengubah status tugas ini menjadi '${newStatus}'?`)) {
+                fetch(`/supervisor/tasks/${taskId}/update-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') 
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Status berhasil diubah menjadi ${newStatus}!`);
+                        window.location.reload(); 
+                    } else {
+                        alert('Gagal mengubah status: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan koneksi.');
+                });
+            }
+        });
+    });
+});
 </script>
 @endsection

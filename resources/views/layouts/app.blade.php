@@ -25,7 +25,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f7fb;
             color: #333;
-            padding-top: 56px; /* Untuk fixed navbar */
+            padding-top: 56px;
         }
 
         .navbar {
@@ -53,7 +53,6 @@
             color: var(--accent-color);
         }
 
-        /* User profile circle untuk mobile */
         .user-profile-circle {
             width: 36px;
             height: 36px;
@@ -68,7 +67,6 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Logout button style */
         .btn-logout-mobile {
             background: transparent;
             border: 1px solid rgba(239, 71, 111, 0.3);
@@ -89,7 +87,6 @@
             transform: translateY(-2px);
         }
 
-        /* Desktop user info */
         .desktop-user-info {
             display: flex;
             align-items: center;
@@ -275,7 +272,6 @@
 
         /* ===== RESPONSIVE MOBILE STYLES ===== */
         
-        /* Bottom Navigation untuk Mobile */
         .bottom-nav {
             display: none;
             position: fixed;
@@ -319,32 +315,26 @@
             color: var(--primary-color);
         }
 
-        /* Mobile specific styles */
         @media (max-width: 992px) {
-            /* SEMBUNYIKAN SIDEBAR DI MOBILE */
             .sidebar {
                 display: none !important;
             }
 
-            /* Tampilkan bottom navigation */
             .bottom-nav {
                 display: flex;
             }
 
-            /* Adjust content area */
             .content-area {
                 margin-left: 0;
                 padding: 15px;
-                padding-bottom: 80px; /* Space untuk bottom nav */
+                padding-bottom: 80px;
                 min-height: calc(100vh - 56px);
             }
 
-            /* Sembunyikan desktop user info di mobile */
             .desktop-user-info {
                 display: none !important;
             }
 
-            /* Mobile navbar layout */
             .navbar .container-fluid {
                 display: flex;
                 justify-content: space-between;
@@ -352,12 +342,10 @@
                 padding: 0 10px;
             }
 
-            /* Tampilkan mobile menu toggle di kiri */
             .navbar-toggler {
-                display: none; /* Sembunyikan karena tidak ada sidebar */
+                display: none;
             }
 
-            /* CIPTATECH brand di kiri */
             .navbar-brand {
                 order: 1;
                 justify-content: flex-start;
@@ -366,10 +354,9 @@
             }
 
             .navbar-brand i {
-                display: none; /* Sembunyikan icon di mobile */
+                display: none;
             }
 
-            /* Mobile user actions di kanan */
             .mobile-user-actions {
                 order: 2;
                 display: flex;
@@ -609,7 +596,7 @@
     <footer class="app-footer mt-5">
         <div class="container-fluid">
             <p class="mb-0">
-                &copy; 2023 Sistem Monitoring Divisi. 
+                &copy; 2026 Ciptatech. 
                 <span class="d-none d-md-inline">Versi 2.1.0 | Status: <span class="text-success">Production</span></span>
             </p>
         </div>

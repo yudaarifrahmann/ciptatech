@@ -12,15 +12,31 @@ class MonitoringController extends Controller
 {
     public function index()
 {
-    $tasks = TaskReport::with(['pic.division'])
-        ->whereHas('pic', function ($q) {
-            $q->where('division_id', auth()->user()->division_id)
-              ->where('role', 'PIC');
-        })
-        ->latest()
-        ->paginate(10);
+    $supervisor = Auth::user();
+    $divisionId = $supervisor->division_id;
 
-    return view('supervisor.monitoring', compact('tasks'));
+    $pics = User::where('role', 'PIC')
+                 ->where('division_id', $divisionId)
+                 ->pluck('id');
+
+    $baseQuery = TaskReport::whereIn('user_id', $pics);
+
+    $totalTasks = (clone $baseQuery)->count(); 
+    
+    $waitingReview = (clone $baseQuery)->where('status', 'Menunggu Review')->count();
+    $completed = (clone $baseQuery)->where('status', 'Tuntas')->count();
+    
+    $averageProgress = (clone $baseQuery)->avg('progress') ?? 0;
+
+    $tasks = $baseQuery->paginate(10);
+
+    return view('supervisor.monitoring', compact(
+        'tasks',
+        'totalTasks',
+        'waitingReview',
+        'completed',
+        'averageProgress'
+    ));
 }
 
     public function show(TaskReport $task)
@@ -56,4 +72,23 @@ class MonitoringController extends Controller
 
         return back()->with('success','Revisi diminta');
     }
+
+    public function updateStatus(Request $request, TaskReport $task)
+{
+    $validStatuses = ['selesai', 'progress']; 
+    $newStatus = strtolower($request->input('status'));
+
+    if (!in_array($newStatus, $validStatuses)) {
+        return response()->json(['success' => false, 'message' => 'Status tidak valid.'], 400);
+    }
+    
+    try {
+        $task->status = $newStatus;
+        $task->save();
+
+        return response()->json(['success' => true, 'message' => 'Status berhasil diperbarui.']);
+
+    } catch (\Exception $e) {
+    }
+}
 }

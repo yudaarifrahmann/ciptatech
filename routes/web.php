@@ -98,6 +98,8 @@ Route::middleware(['auth', 'role:supervisor'])
         Route::post('/monitoring/{task}/revision', [MonitoringController::class, 'revision'])
             ->name('monitoring.revision');
 
+        Route::post('/supervisor/tasks/{task}/update-status', [MonitoringController::class, 'updateStatus'])->name('supervisor.tasks.updateStatus');
+
         Route::get('/reports', [SupervisorReportController::class, 'index'])
             ->name('reports');
 
