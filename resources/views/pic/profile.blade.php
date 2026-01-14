@@ -2,6 +2,13 @@
 
 @section('title', 'Profile')
 
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+        <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 @section('content')
 <div class="profile-wrapper py-3">
     <!-- Header Section -->
@@ -109,13 +116,13 @@
                                                 </div>
                                             </div>
                                         </div>
-                <div class="card-footer bg-white border-0 py-3">
-                    <div class="d-flex justify-content-end">
-                        <button class="btn btn-primary">
-                            <i class="fas fa-edit me-1"></i>Edit Profil
-                        </button>
-                    </div>
-                </div>
+               <div class="card-footer bg-white border-0 py-3">
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <i class="fas fa-edit me-1"></i>Edit Profil
+        </button>
+    </div>
+</div>
             </div>
         </div>
         
@@ -480,12 +487,54 @@
             });
         }
 
-        const editBtn = document.querySelector('.btn-primary');
-        if (editBtn && editBtn.textContent.includes('Edit Profil')) {
-            editBtn.addEventListener('click', function() {
-                alert('Fitur edit profil akan dibuka');
-            });
+    
         }
-    });
 </script>
+
+<!-- Modal Edit Profil -->
+<!-- Modal Edit Profil -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <form method="POST" action="{{ route('pic.profile.update') }}">
+                @csrf
+                @method('PUT')
+
+                <!-- HEADER -->
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Informasi Profil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nama Lengkap</label>
+                        <input type="text" name="name" class="form-control"
+                               value="{{ $user->name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="email" name="email" class="form-control"
+                               value="{{ $user->email }}" required>
+                    </div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Simpan Perubahan
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
 @endsection

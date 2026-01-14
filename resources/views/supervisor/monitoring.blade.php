@@ -372,7 +372,222 @@
 </div>
     </div>
 
-    <!-- Additional Tools -->
+        <!-- ==================== DAILY REPORTS SECTION ==================== -->
+<div class="daily-reports-section mt-5">
+    <div class="section-header mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-1">
+                    <i class="fas fa-chart-line text-info me-2"></i>
+                    Daily Reports
+                </h5>
+                <p class="text-muted mb-0">Laporan harian dari PIC di divisi Anda</p>
+            </div>
+            <a href="{{ route('supervisor.daily-reports.index') }}" class="btn btn-outline-info btn-sm">
+                <i class="fas fa-external-link-alt me-1"></i>Lihat Semua
+            </a>
+        </div>
+    </div>
+
+    @php
+    // Ambil data daily reports dari PIC di divisi supervisor
+    use App\Models\DailyReport;
+    use App\Models\User;
+    
+    $supervisor = auth()->user();
+    $picUsers = User::where('role', 'PIC')
+        ->where('division_id', $supervisor->division_id)
+        ->where('is_active', 1) // ✅ PERBAIKI: ganti 'status' dengan 'is_active'
+        ->pluck('id');
+    
+    $dailyReports = DailyReport::with('user')
+        ->whereIn('user_id', $picUsers)
+        ->latest('report_date')
+        ->latest('created_at')
+        ->take(5) // Limit 5 terbaru
+        ->get();
+    
+    $totalDailyReports = DailyReport::whereIn('user_id', $picUsers)->count();
+    $todayReports = DailyReport::whereIn('user_id', $picUsers)
+        ->whereDate('report_date', today())
+        ->count();
+@endphp
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Reports</h6>
+                            <h2 class="fw-bold mb-0">{{ $totalDailyReports }}</h2>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-file-alt fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Hari Ini</h6>
+                            <h2 class="fw-bold mb-0">{{ $todayReports }}</h2>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-calendar-day fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">PIC Aktif</h6>
+                            <h2 class="fw-bold mb-0">
+                                {{ User::where('role', 'PIC')
+                                    ->where('division_id', $supervisor->division_id)
+                                    ->where('is_active', 1)
+                                    ->count() }}
+                            </h2>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-users fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Reports Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-list me-2 text-info"></i>
+                Daily Reports Terbaru
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if($dailyReports->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Tanggal</th>
+                                <th>Nama PIC</th>
+                                <th>Task</th>
+                                <th>Divisi</th>
+                                <th class="text-end pe-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($dailyReports as $report)
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">
+                                            {{ \Carbon\Carbon::parse($report->report_date)->translatedFormat('d M Y') }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ $report->created_at->diffForHumans() }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-placeholder bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                 style="width: 40px; height: 40px;">
+                                                {{ strtoupper(substr($report->user->name, 0, 1)) }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ $report->user->name }}</div>
+                                                <small class="text-muted">{{ $report->user->email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;" 
+                                             data-bs-toggle="tooltip" title="{{ $report->task }}">
+                                            {{ $report->task }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                                            {{ $report->user->division->name ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-outline-info btn-sm view-daily-detail"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#dailyDetailModal"
+                                                data-report='@json($report)'
+                                                data-user='@json($report->user)'>
+                                            <i class="fas fa-eye me-1"></i>Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <h5>Belum ada daily report</h5>
+                        <p>PIC di divisi Anda belum membuat laporan harian</p>
+                        <a href="{{ route('supervisor.users.create') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-user-plus me-1"></i>Kelola PIC
+                        </a>
+                    </div>
+                </div>
+            @endif
+        </div>
+        
+        @if($totalDailyReports > 5)
+            <div class="card-footer bg-white border-0 py-3 text-center">
+                <a href="{{ route('supervisor.daily-reports.index') }}" class="btn btn-link text-info">
+                    Lihat {{ $totalDailyReports - 5 }} laporan lainnya
+                    <i class="fas fa-chevron-right ms-1"></i>
+                </a>
+            </div>
+        @endif
+    </div>
+</div>
+<!-- ==================== END DAILY REPORTS SECTION ==================== -->
+
+<!-- Modal Detail Daily Report -->
+<div class="modal fade" id="dailyDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-line text-info me-2"></i>
+                    Detail Daily Report
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="dailyModalDetailContent">
+                <!-- Konten akan diisi via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+
+<!-- Additional Tools -->
     <div class="row mt-4">
         <div class="col-md-6">
             <div class="card border-0 bg-light shadow-sm">
@@ -406,7 +621,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <style>
     .monitoring-wrapper {
@@ -625,6 +839,91 @@
         .pic-info .text-muted {
             font-size: 0.75rem;
         }
+
+        /* Daily Reports Section */
+.daily-reports-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eaeaea;
+}
+
+.daily-reports-section .section-header {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.daily-reports-section .avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #0dcaf0;
+}
+
+.daily-reports-section .table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.daily-reports-section .table td {
+    vertical-align: middle;
+}
+
+.daily-reports-section .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.daily-reports-section .badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Modal Daily Report */
+#dailyDetailModal .modal-content {
+    border-radius: 12px;
+    border: none;
+}
+
+#dailyDetailModal .modal-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+#dailyDetailModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#dailyDetailModal .card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+#dailyDetailModal img {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .daily-reports-section .table td,
+    .daily-reports-section .table th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .daily-reports-section .avatar-placeholder {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.875rem;
+    }
+    
+    .daily-reports-section .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
     }
 </style>
 
@@ -731,6 +1030,97 @@ function showImagePreview(imageUrl, title) {
     const previewModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
     previewModal.show();
 }
+
+// Daily Reports Modal
+document.querySelectorAll('.view-daily-detail').forEach(button => {
+    button.addEventListener('click', function() {
+        const report = JSON.parse(this.getAttribute('data-report'));
+        const user = JSON.parse(this.getAttribute('data-user'));
+        
+        const modalContent = document.getElementById('dailyModalDetailContent');
+        const reportDate = new Date(report.report_date).toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        let documentationHtml = '';
+        if (report.documentation) {
+            documentationHtml = `
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Dokumentasi:</label><br>
+                    <a href="/storage/${report.documentation}" target="_blank">
+                        <img src="/storage/${report.documentation}" 
+                             alt="Dokumentasi" 
+                             class="img-fluid rounded" 
+                             style="max-height: 300px;">
+                    </a>
+                </div>
+            `;
+        }
+        
+        modalContent.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tanggal Laporan:</label>
+                        <p>${reportDate}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nama PIC:</label>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-placeholder bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 40px; height: 40px;">
+                                ${user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-bold">${user.name}</p>
+                                <small class="text-muted">${user.email}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Divisi:</label>
+                        <p>${user.division ? user.division.name : '-'}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Dibuat pada:</label>
+                        <p>${new Date(report.created_at).toLocaleString('id-ID')}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Terakhir diupdate:</label>
+                        <p>${new Date(report.updated_at).toLocaleString('id-ID')}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Task:</label>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <p class="mb-0">${report.task}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Deskripsi:</label>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <p class="mb-0">${report.description}</p>
+                    </div>
+                </div>
+            </div>
+            
+            ${documentationHtml}
+        `;
+    });
+});
 </script>
 <div class="modal fade" id="imagePreviewModal" tabindex="-3" aria-hidden="true" style="z-index: 2050;">
     <div class="modal-dialog modal-dialog-centered modal-xl">

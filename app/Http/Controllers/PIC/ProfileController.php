@@ -23,13 +23,17 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
+        $user = auth()->user();
+
         $request->validate([
             'name'  => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 
-        $user = auth()->user();
-        $user->update($request->only('name','phone'));
+        $user->update([
+            'name'  => $request->name,
+            'email' => $request->email,
+        ]);
 
         activity()
             ->causedBy($user)

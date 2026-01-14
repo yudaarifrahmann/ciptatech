@@ -489,6 +489,8 @@
                     showToast('Silahkan pilih divisi untuk user ini.', 'error');
                     return;
                 }
+                
+                // If validation passes, allow form submission
                 const submitBtn = document.getElementById('submitBtn');
                 const spinner = document.getElementById('submitSpinner');
                 const submitText = submitBtn.querySelector('span:first-of-type');
@@ -496,21 +498,6 @@
                 submitText.textContent = 'Menyimpan...';
                 spinner.style.display = 'inline-block';
                 submitBtn.disabled = true;
-                
-                setTimeout(() => {
-                    showToast('User berhasil ditambahkan!', 'success');
-                    
-                    setTimeout(() => {
-                        createUserForm.reset();
-                        roleSelect.dispatchEvent(new Event('change'));
-
-                        submitText.textContent = 'Simpan User';
-                        spinner.style.display = 'none';
-                        submitBtn.disabled = false;
-                    }, 1500);
-                }, 2000);
-                
-                e.preventDefault();
             });
         }
 

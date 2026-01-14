@@ -281,21 +281,30 @@
                                                 <small class="text-muted">{{ $pic->created_at->diffForHumans() }}</small>
                                             </td>
 
-                                            <td class="text-end pe-4">
-                                                <div class="btn-group">
-                                                    <button class="btn btn-outline-primary btn-sm">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-info btn-sm">
-                                                        <i class="fas fa-key"></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-warning btn-sm">
-                                                        <i class="fas fa-user-slash"></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-danger btn-sm">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
+                                           <td class="text-end pe-4">
+    <div class="btn-group">
+        <button class="btn btn-outline-primary btn-sm" 
+                data-bs-toggle="modal" 
+                data-bs-target="#editModal{{ $pic->id }}">
+            <i class="fas fa-edit"></i>
+        </button>
+
+        <form method="POST" action="{{ route('supervisor.users.toggle', $pic->id) }}" class="d-inline">
+            @csrf
+            @method('PATCH')
+            <button type="submit" class="btn btn-outline-warning btn-sm">
+                <i class="fas {{ $pic->is_active ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+            </button>
+        </form>
+
+        <button class="btn btn-outline-danger btn-sm" 
+                data-bs-toggle="modal" 
+                data-bs-target="#deleteModal{{ $pic->id }}">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</td>
+
                                             </td>
                                         </tr>
                                     @empty
@@ -587,12 +596,6 @@
             });
         }
 
-        const actionButtons = document.querySelectorAll('.btn-group .btn');
-        actionButtons.forEach(button => {
-            button.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const row = this.closest('tr');
-                const userName = row.querySelector('strong').textContent;
 
                 if (this.querySelector('.fa-edit')) {
                     alert(`Edit user: ${userName}\nAnda harus menghubungkan ini ke form/modal edit.`);
@@ -621,4 +624,65 @@
 
     });
 </script>
+@foreach ($pics as $pic)
+<div class="modal fade" id="editModal{{ $pic->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('supervisor.users.update', $pic->id) }}">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit PIC: {{ $pic->name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" name="name" class="form-control" value="{{ $pic->name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ $pic->email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Divisi</label>
+                        <select class="form-select" name="division_id" required>
+                            @foreach($divisions as $d)
+                                <option value="{{ $d->id }}" {{ $pic->division_id == $d->id ? 'selected' : '' }}>{{ $d->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal{{ $pic->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <p>Yakin ingin menghapus akun <strong>{{ $pic->name }}</strong>?</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <form method="POST" action="{{ route('supervisor.users.destroy', $pic->id) }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
+
 @endsection

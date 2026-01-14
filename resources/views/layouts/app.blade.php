@@ -500,6 +500,14 @@
                     <i class="fas fa-history"></i>
                     <span>Riwayat Laporan</span>
                 </a>
+             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/pic/daily-report">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Daily report</span>
+                </a>
+            </li>
+
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/pic/profile">
