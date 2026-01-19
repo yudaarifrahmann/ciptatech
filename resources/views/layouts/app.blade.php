@@ -492,7 +492,7 @@
             <li class="nav-item">
                 <a class="nav-link" href="/pic/report/create">
                     <i class="fas fa-plus-circle"></i>
-                    <span>Lapor Tugas</span>
+                    <span>Lapor Tugas Mingguan</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -503,11 +503,15 @@
              </li>
             <li class="nav-item">
                 <a class="nav-link" href="/pic/daily-report">
-                    <i class="fas fa-user-cog"></i>
+                    <i class="fas fa-calendar-day"></i>
                     <span>Daily report</span>
                 </a>
             </li>
-
+            <li class="nav-item">
+                <a class="nav-link" href="/pic/tasks">
+                    <i class="fas fa-list-check"></i>
+                    <span>Daftar Tugas</span>
+                </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/pic/profile">
@@ -526,6 +530,12 @@
                 <a class="nav-link" href="/supervisor">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard Utama</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/supervisor/tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>Kelola Tugas</span>
                 </a>
             </li>
             <li class="nav-item">

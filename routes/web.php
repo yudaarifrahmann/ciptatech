@@ -9,12 +9,14 @@ use App\Http\Controllers\PIC\ReportController as PicReportController;
 use App\Http\Controllers\PIC\ProfileController;
 use App\Http\Controllers\PIC\TaskReportController;
 use App\Http\Controllers\PIC\DailyReportController;
+use App\Http\Controllers\PIC\TaskController as PicTaskController;
 
 // Supervisor
 use App\Http\Controllers\Supervisor\DashboardController as SupervisorDashboardController;
 use App\Http\Controllers\Supervisor\MonitoringController;
 use App\Http\Controllers\Supervisor\ReportController as SupervisorReportController;
 use App\Http\Controllers\Supervisor\UserController;
+use App\Http\Controllers\Supervisor\TaskController as SupervisorTaskController;
 
 // Superadmin
 use App\Http\Controllers\Superadmin\DivisionController;
@@ -90,6 +92,22 @@ Route::middleware(['auth', 'role:PIC'])
 
         Route::post('/daily-report', [DailyReportController::class, 'store'])
             ->name('daily-report.store');
+
+        // TASKS
+        Route::get('/tasks', [PicTaskController::class, 'index'])
+            ->name('tasks.index');
+
+        Route::get('/tasks/{task}', [PicTaskController::class, 'show'])
+            ->name('tasks.show');
+
+        Route::post('/tasks/{task}/submit', [PicTaskController::class, 'submitWork'])
+            ->name('tasks.submit');
+
+        Route::post('/tasks/{task}/complete', [PicTaskController::class, 'completeTaskItem'])
+            ->name('tasks.complete');
+
+        Route::get('/tasks/progress/stats', [PicTaskController::class, 'getSubmissionProgress'])
+            ->name('tasks.progress');
     });
 
 /*
@@ -144,7 +162,37 @@ Route::middleware(['auth', 'role:supervisor'])
 
         Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])
             ->name('users.toggle');
-    
+
+        // TASK MANAGEMENT
+        Route::get('/tasks', [SupervisorTaskController::class, 'index'])
+            ->name('tasks.index');
+
+        Route::get('/tasks/create', [SupervisorTaskController::class, 'create'])
+            ->name('tasks.create');
+
+        Route::post('/tasks', [SupervisorTaskController::class, 'store'])
+            ->name('tasks.store');
+
+        Route::get('/tasks/{task}', [SupervisorTaskController::class, 'show'])
+            ->name('tasks.show');
+
+        Route::get('/tasks/{task}/edit', [SupervisorTaskController::class, 'edit'])
+            ->name('tasks.edit');
+
+        Route::put('/tasks/{task}', [SupervisorTaskController::class, 'update'])
+            ->name('tasks.update');
+
+        Route::delete('/tasks/{task}', [SupervisorTaskController::class, 'destroy'])
+            ->name('tasks.destroy');
+
+        Route::get('/tasks/{task}/review', [SupervisorTaskController::class, 'reviewSubmissions'])
+            ->name('tasks.review');
+
+        Route::post('/submissions/{submission}/approve', [SupervisorTaskController::class, 'approveSubmission'])
+            ->name('submissions.approve');
+
+        Route::post('/submissions/{submission}/reject', [SupervisorTaskController::class, 'rejectSubmission'])
+            ->name('submissions.reject');
     });
 
 

@@ -21,6 +21,7 @@ class User extends Authenticatable
    protected $fillable = [
     'name',
     'email',
+    'password',
 ];
 
 
@@ -48,14 +49,23 @@ class User extends Authenticatable
         ];
     }
 
-   public function division()
-{
-    return $this->belongsTo(Division::class, 'division_id'); 
-}
+    public function division()
+    {
+        return $this->belongsTo(Division::class, 'division_id'); 
+    }
 
     public function taskReports()
-{
-    return $this->hasMany(TaskReport::class, 'user_id');
-}
+    {
+        return $this->hasMany(TaskReport::class, 'user_id');
+    }
 
+    public function supervisedTasks()
+    {
+        return $this->hasMany(Task::class, 'supervisor_id');
+    }
+
+    public function picSubmissions()
+    {
+        return $this->hasMany(TaskSubmission::class, 'pic_id');
+    }
 }

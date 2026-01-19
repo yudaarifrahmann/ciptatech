@@ -11,31 +11,66 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::latest()->get();
+        $users = User::with('division')->latest()->get();
         return view('superadmin.users.index', compact('users'));
     }
 
     public function create()
     {
-        $divisions = Division::all();
+        $divisions = Division::where('is_active', 1)
+                            ->orderBy('name')
+                            ->get();
         return view('superadmin.users.create', compact('divisions'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
+        // Validasi sesuai dengan option di form
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'role' => 'required',
-            'password' => 'required|min:6'
+            'role' => 'required|in:PIC,supervisor,admin_divisi',
+            'password' => 'required|min:8|confirmed',
+            'division_id' => 'nullable|exists:divisions,id'
         ]);
 
+        // Logika untuk role yang tidak perlu divisi
+        // Note: Di database Anda hanya ada 'supervisor' dan 'superadmin', tidak ada 'admin_divisi'
+        // Jadi kita perlu menyesuaikan
+        
+        if ($validated['role'] === 'supervisor') {
+            // Supervisor tidak memerlukan divisi
+            $validated['division_id'] = null;
+        } elseif ($validated['role'] === 'admin_divisi') {
+            // Admin divisi tetap memerlukan divisi
+            // Tidak ada perubahan, biarkan division_id tetap
+        } else {
+            // PIC memerlukan divisi
+            // Tidak ada perubahan
+        }
+
+        // Divisi wajib untuk PIC dan admin_divisi
+        if (in_array($validated['role'], ['PIC', 'admin_divisi']) && empty($validated['division_id'])) {
+            return back()->withErrors(['division_id' => 'Divisi wajib dipilih untuk ' . $validated['role']]);
+        }
+
+        // Convert admin_divisi ke role yang ada di database
+        $roleForDatabase = $validated['role'];
+        if ($roleForDatabase === 'admin_divisi') {
+            // Anda perlu memutuskan apakah admin_divisi akan disimpan sebagai apa
+            // Opsi 1: Simpan sebagai 'supervisor' dengan hak khusus
+            // Opsi 2: Tambahkan role 'admin_divisi' ke database
+            // Saya sarankan opsi 1 untuk saat ini
+            $roleForDatabase = 'supervisor'; // Atau sesuaikan dengan kebutuhan
+        }
+
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-            'division_id' => $request->division_id,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role' => $roleForDatabase,
+            'division_id' => $validated['division_id'],
+            'password' => Hash::make($validated['password']),
+            'is_active' => 1
         ]);
 
         return redirect()->route('superadmin.users.index')
@@ -44,30 +79,53 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $divisions = Division::all();
+        $divisions = Division::where('is_active', 1)
+                            ->orderBy('name')
+                            ->get();
+        
+        // Convert role dari database ke role untuk form
+        $user->form_role = $user->role;
+        // Jika role di database adalah supervisor tapi mungkin sebenarnya admin_divisi
+        // Anda perlu logika untuk membedakan
+        
         return view('superadmin.users.edit', compact('user', 'divisions'));
     }
 
     public function update(Request $request, User $user)
     {
-        $request->validate([
-            'name' => 'required',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required',
+            'role' => 'required|in:PIC,supervisor,admin_divisi',
+            'division_id' => 'nullable|exists:divisions,id',
+            'password' => 'nullable|min:8|confirmed'
         ]);
 
+        // Logika untuk role yang tidak perlu divisi
+        if ($validated['role'] === 'supervisor') {
+            $validated['division_id'] = null;
+        }
+
+        // Divisi wajib untuk PIC dan admin_divisi
+        if (in_array($validated['role'], ['PIC', 'admin_divisi']) && empty($validated['division_id'])) {
+            return back()->withErrors(['division_id' => 'Divisi wajib dipilih untuk ' . $validated['role']]);
+        }
+
+        // Convert admin_divisi ke role yang ada di database
+        $roleForDatabase = $validated['role'];
+        if ($roleForDatabase === 'admin_divisi') {
+            $roleForDatabase = 'supervisor'; // Atau sesuaikan dengan kebutuhan
+        }
+
         $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-            'division_id' => $request->division_id,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role' => $roleForDatabase,
+            'division_id' => $validated['division_id'],
         ];
 
-        if ($request->filled('password')) {
-            $request->validate([
-                'password' => 'min:6'
-            ]);
-            $data['password'] = Hash::make($request->password);
+        if (!empty($validated['password'])) {
+            $data['password'] = Hash::make($validated['password']);
         }
 
         $user->update($data);
@@ -78,6 +136,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Cegah penghapusan diri sendiri
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Tidak dapat menghapus akun sendiri');
+        }
+        
         $user->delete();
         
         return redirect()->route('superadmin.users.index')
@@ -87,7 +150,7 @@ class UserController extends Controller
     public function resetPassword(Request $request, User $user)
     {
         $request->validate([
-            'password' => 'required|min:6|confirmed'
+            'password' => 'required|min:8|confirmed'
         ]);
 
         $user->update([
@@ -99,10 +162,16 @@ class UserController extends Controller
 
     public function toggleStatus(User $user)
     {
+        // Cegah menonaktifkan diri sendiri
+        if ($user->id === auth()->id() && !$user->is_active) {
+            return back()->with('error', 'Tidak dapat menonaktifkan akun sendiri');
+        }
+        
         $user->update([
             'is_active' => !$user->is_active
         ]);
 
-        return back()->with('success', 'Status user berhasil diubah');
+        $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        return back()->with('success', "Status user berhasil $status");
     }
 }

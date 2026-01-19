@@ -41,16 +41,16 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted mb-1">Total User</h6>
-                        <h2 class="display-6 fw-bold mb-0 text-primary" id="totalUsers">--</h2>
+                        <h2 class="display-6 fw-bold mb-0 text-primary">{{ $totalUsers }}</h2>
                         <div class="mt-2">
                             <span class="badge bg-primary bg-opacity-10 text-primary">
-                                <i class="fas fa-user me-1"></i>Admin: 3
+                                <i class="fas fa-user me-1"></i>Admin: {{ $usersByRole['superadmin'] }}
                             </span>
                             <span class="badge bg-success bg-opacity-10 text-success ms-1">
-                                <i class="fas fa-user-tie me-1"></i>Supervisor: 5
+                                <i class="fas fa-user-tie me-1"></i>Supervisor: {{ $usersByRole['supervisor'] }}
                             </span>
                             <span class="badge bg-info bg-opacity-10 text-info ms-1">
-                                <i class="fas fa-user-check me-1"></i>PIC: 24
+                                <i class="fas fa-user-check me-1"></i>PIC: {{ $usersByRole['PIC'] }}
                             </span>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                 <div class="mt-3">
                     <small class="text-muted">
                         <i class="fas fa-arrow-up text-success me-1"></i>
-                        <span class="text-success">12%</span> dari bulan lalu
+                        <span class="text-success">User aktif: {{ $onlineUsers }}</span>
                     </small>
                 </div>
             </div>
@@ -74,13 +74,13 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted mb-1">Total Divisi</h6>
-                        <h2 class="display-6 fw-bold mb-0 text-success" id="totalDivisions">--</h2>
+                        <h2 class="display-6 fw-bold mb-0 text-success">{{ $totalDivisions }}</h2>
                         <div class="mt-2">
                             <span class="badge bg-success bg-opacity-10 text-success">
-                                <i class="fas fa-check-circle me-1"></i>Aktif: 8
+                                <i class="fas fa-check-circle me-1"></i>Aktif: {{ $activeDivisions }}
                             </span>
                             <span class="badge bg-secondary bg-opacity-10 text-secondary ms-1">
-                                <i class="fas fa-pause-circle me-1"></i>Nonaktif: 2
+                                <i class="fas fa-pause-circle me-1"></i>Nonaktif: {{ $inactiveDivisions }}
                             </span>
                         </div>
                     </div>
@@ -93,7 +93,7 @@
                 <div class="mt-3">
                     <small class="text-muted">
                         <i class="fas fa-chart-line text-info me-1"></i>
-                        <span class="text-info">8 divisi</span> dengan tugas aktif
+                        <span class="text-info">{{ $activeDivisions }} divisi</span> dengan tugas aktif
                     </small>
                 </div>
             </div>
@@ -104,13 +104,13 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted mb-1">Total Laporan</h6>
-                        <h2 class="display-6 fw-bold mb-0 text-warning" id="totalReports">--</h2>
+                        <h2 class="display-6 fw-bold mb-0 text-warning">{{ $totalReports }}</h2>
                         <div class="mt-2">
                             <span class="badge bg-success bg-opacity-10 text-success">
-                                <i class="fas fa-check me-1"></i>Disetujui: 156
+                                <i class="fas fa-check me-1"></i>Disetujui: {{ $approvedReports }}
                             </span>
                             <span class="badge bg-warning bg-opacity-10 text-warning ms-1">
-                                <i class="fas fa-clock me-1"></i>Menunggu: 28
+                                <i class="fas fa-clock me-1"></i>Menunggu: {{ $pendingReports }}
                             </span>
                         </div>
                     </div>
@@ -123,7 +123,7 @@
                 <div class="mt-3">
                     <small class="text-muted">
                         <i class="fas fa-calendar me-1"></i>
-                        Bulan ini: <strong>42</strong> laporan
+                        Total laporan: <strong>{{ $totalReports }}</strong>
                     </small>
                 </div>
             </div>
@@ -134,13 +134,13 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted mb-1">Aktivitas Sistem</h6>
-                        <h2 class="display-6 fw-bold mb-0 text-info" id="systemActivity">--</h2>
+                        <h2 class="display-6 fw-bold mb-0 text-info">{{ $totalUsers }}</h2>
                         <div class="mt-2">
                             <span class="badge bg-info bg-opacity-10 text-info">
-                                <i class="fas fa-bolt me-1"></i>Online: 32
+                                <i class="fas fa-bolt me-1"></i>Online: {{ $onlineUsers }}
                             </span>
                             <span class="badge bg-secondary bg-opacity-10 text-secondary ms-1">
-                                <i class="fas fa-moon me-1"></i>Offline: 4
+                                <i class="fas fa-moon me-1"></i>Offline: {{ $offlineUsers }}
                             </span>
                         </div>
                     </div>
@@ -181,75 +181,25 @@
                 </div>
                 <div class="card-body">
                     <div class="activity-timeline">
+                        @forelse($recentActivities as $activity)
                         <div class="activity-item">
                             <div class="activity-icon">
-                                <i class="fas fa-user-plus text-success"></i>
+                                <i class="fas {{ $activity['icon'] }} text-{{ $activity['color'] }}"></i>
                             </div>
                             <div class="activity-content">
-                                <h6 class="mb-1">User baru ditambahkan</h6>
-                                <p class="text-muted small mb-0">Supervisor "Budi Santoso" berhasil ditambahkan ke sistem</p>
+                                <h6 class="mb-1">{{ $activity['title'] }}</h6>
+                                <p class="text-muted small mb-0">{{ $activity['description'] }}</p>
                                 <small class="text-muted">
                                     <i class="fas fa-clock me-1"></i>
-                                    10 menit lalu • Oleh: Superadmin
+                                    {{ $activity['time'] }} • Oleh: {{ $activity['author'] }}
                                 </small>
                             </div>
                         </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-file-upload text-primary"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h6 class="mb-1">Laporan disetujui</h6>
-                                <p class="text-muted small mb-0">Laporan "Deploy Aplikasi v2.1" dari divisi Software Host disetujui</p>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock me-1"></i>
-                                    45 menit lalu • Oleh: Supervisor IT
-                                </small>
-                            </div>
+                        @empty
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-0">Tidak ada aktivitas terbaru</p>
                         </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-exclamation-triangle text-warning"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h6 class="mb-1">Peringatan sistem</h6>
-                                <p class="text-muted small mb-0">Storage server mencapai 85% kapasitas</p>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock me-1"></i>
-                                    2 jam lalu • Sistem monitoring
-                                </small>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-database text-info"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h6 class="mb-1">Backup otomatis</h6>
-                                <p class="text-muted small mb-0">Backup database harian berhasil dijalankan</p>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock me-1"></i>
-                                    4 jam lalu • Sistem backup
-                                </small>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-sign-in-alt text-success"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h6 class="mb-1">Login berhasil</h6>
-                                <p class="text-muted small mb-0">Admin "Siti" login dari IP 192.168.1.100</p>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock me-1"></i>
-                                    6 jam lalu • Sistem autentikasi
-                                </small>
-                            </div>
-                        </div>
+                        @endforelse
                     </div>
                 </div>
                 <div class="card-footer bg-white border-0 py-3">
@@ -264,64 +214,6 @@
         
         <!-- Quick Actions & System Health -->
         <div class="col-lg-4">
-            <!-- System Health -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-0 py-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="fas fa-heartbeat me-2 text-success"></i>
-                        Kesehatan Sistem
-                    </h6>
-                    <p class="text-muted small mb-0">Status komponen sistem</p>
-                </div>
-                <div class="card-body">
-                    <div class="system-health-items">
-                        <div class="health-item">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold">Database</span>
-                                <span class="badge bg-success">Healthy</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-success" style="width: 92%"></div>
-                            </div>
-                            <small class="text-muted">Response: 45ms</small>
-                        </div>
-                        
-                        <div class="health-item mt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold">Storage</span>
-                                <span class="badge bg-warning">Warning</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-warning" style="width: 85%"></div>
-                            </div>
-                            <small class="text-muted">85% used • 150GB free</small>
-                        </div>
-                        
-                        <div class="health-item mt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold">API Services</span>
-                                <span class="badge bg-success">Healthy</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-success" style="width: 98%"></div>
-                            </div>
-                            <small class="text-muted">Uptime: 99.8%</small>
-                        </div>
-                        
-                        <div class="health-item mt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold">Network</span>
-                                <span class="badge bg-success">Healthy</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-success" style="width: 96%"></div>
-                            </div>
-                            <small class="text-muted">Latency: 28ms</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Quick Actions -->
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-0 py-3">
@@ -388,7 +280,7 @@
                     <div class="row text-center">
                         <div class="col-md-3 col-6 mb-3">
                             <div class="metric-item">
-                                <div class="metric-value text-primary fw-bold fs-4">1,248</div>
+                                <div class="metric-value text-primary fw-bold fs-4">{{ $metrics['total_logins'] }}</div>
                                 <div class="metric-label text-muted small">Total Login</div>
                                 <div class="metric-trend text-success">
                                     <i class="fas fa-arrow-up me-1"></i>8.5%
@@ -397,7 +289,7 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="metric-item">
-                                <div class="metric-value text-success fw-bold fs-4">342</div>
+                                <div class="metric-value text-success fw-bold fs-4">{{ $metrics['new_reports'] }}</div>
                                 <div class="metric-label text-muted small">Laporan Baru</div>
                                 <div class="metric-trend text-success">
                                     <i class="fas fa-arrow-up me-1"></i>12.3%
@@ -406,7 +298,7 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="metric-item">
-                                <div class="metric-value text-warning fw-bold fs-4">45</div>
+                                <div class="metric-value text-warning fw-bold fs-4">{{ $metrics['completed_tasks'] }}</div>
                                 <div class="metric-label text-muted small">Task Selesai</div>
                                 <div class="metric-trend text-danger">
                                     <i class="fas fa-arrow-down me-1"></i>2.1%
@@ -415,7 +307,7 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="metric-item">
-                                <div class="metric-value text-info fw-bold fs-4">98.7%</div>
+                                <div class="metric-value text-info fw-bold fs-4">{{ $metrics['system_uptime'] }}%</div>
                                 <div class="metric-label text-muted small">System Uptime</div>
                                 <div class="metric-trend text-success">
                                     <i class="fas fa-check-circle me-1"></i>Stabil
@@ -657,14 +549,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Simulate loading data
-        setTimeout(() => {
-            document.getElementById('totalUsers').textContent = '32';
-            document.getElementById('totalDivisions').textContent = '10';
-            document.getElementById('totalReports').textContent = '184';
-            document.getElementById('systemActivity').textContent = '36';
-        }, 800);
-        
         // Refresh data button
         const refreshBtn = document.querySelector('.btn-outline-primary');
         if (refreshBtn && refreshBtn.textContent.includes('Refresh')) {
@@ -673,13 +557,9 @@
                 this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Refreshing...';
                 this.disabled = true;
                 
-                // Simulate API call
+                // Reload page to refresh data
                 setTimeout(() => {
-                    this.innerHTML = originalHtml;
-                    this.disabled = false;
-                    
-                    // Show toast notification
-                    showToast('Data berhasil diperbarui', 'success');
+                    location.reload();
                 }, 1500);
             });
         }
@@ -700,13 +580,13 @@
                 const action = this.querySelector('span').textContent;
                 console.log(`Quick action: ${action}`);
                 
-                // Show different alerts based on action
+                // Navigate based on action
                 switch(action.trim()) {
                     case 'Tambah User':
-                        alert('Membuka form tambah user');
+                        window.location.href = '/superadmin/users/create';
                         break;
                     case 'Kelola Divisi':
-                        alert('Membuka halaman kelola divisi');
+                        window.location.href = '/superadmin/divisions';
                         break;
                     case 'System Config':
                         alert('Membuka konfigurasi sistem');
@@ -784,13 +664,13 @@
         healthBars.forEach(bar => {
             const width = parseInt(bar.style.width);
             if (width > 90) {
-                bar.className = 'progress-bar bg-danger';
+                bar.className = 'progress-bar bg-success';
             } else if (width > 80) {
                 bar.className = 'progress-bar bg-warning';
             } else if (width > 70) {
                 bar.className = 'progress-bar bg-info';
             } else {
-                bar.className = 'progress-bar bg-success';
+                bar.className = 'progress-bar bg-danger';
             }
         });
     });

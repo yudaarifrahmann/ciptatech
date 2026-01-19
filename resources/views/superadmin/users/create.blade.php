@@ -95,7 +95,7 @@
                                     </button>
                                 </div>
                                 <div class="password-strength mt-2">
-                                    <div class="progress" style="height: 5px;">
+                                    <div class="progress" style="height: 8px;">
                                         <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
                                     </div>
                                     <small class="text-muted" id="passwordHint">Kekuatan password</small>
@@ -139,34 +139,24 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-building me-1 text-primary"></i>
-                                    Divisi
-                                    <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select form-select-lg border-1 shadow-sm" name="division_id" id="divisionSelect">
-                                    <option value="">-- Pilih Divisi --</option>
-                                    @php
-                                        
-                                        $sampleDivisions = [
-                                            (object)['id' => 1, 'name' => 'Multimedia'],
-                                            (object)['id' => 2, 'name' => 'IT Support'],
-                                            (object)['id' => 3, 'name' => 'Software Host'],
-                                            (object)['id' => 4, 'name' => 'Network'],
-                                            (object)['id' => 5, 'name' => 'Security'],
-                                            (object)['id' => 6, 'name' => 'Hardware'],
-                                        ];
-                                        
-                                        $displayDivisions = $divisions ?? $sampleDivisions;
-                                    @endphp
-                                    @foreach($displayDivisions as $division)
-                                        <option value="{{ $division->id }}">{{ $division->name }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="form-text text-muted" id="divisionInfo">Pilih divisi tempat user bertugas</div>
-                            </div>
-                        </div>
+                 <!-- Kolom Divisi - Hapus seluruh kode PHP yang ada dan ganti dengan ini -->
+            <div class="col-md-6 mb-4">
+    <label class="form-label fw-bold">
+        <i class="fas fa-building me-1 text-primary"></i>
+        Divisi
+        <span class="text-danger" id="divisionRequired">*</span>
+    </label>
+    <select class="form-select form-select-lg border-1 shadow-sm" name="division_id" id="divisionSelect">
+        <option value="">-- Pilih Divisi --</option>
+        @foreach($divisions as $division)
+            <option value="{{ $division->id }}">{{ $division->name }}</option>
+        @endforeach
+    </select>
+    <div class="form-text text-muted" id="divisionInfo">Pilih divisi tempat user bertugas</div>
+    @error('division_id')
+        <div class="text-danger small mt-1">{{ $message }}</div>
+    @enderror
+</div>
 
                         <!-- Additional Info (shown for specific roles) -->
                         <div class="row mb-4" id="additionalInfo" style="display: none;">
@@ -273,8 +263,27 @@
         border-color: #86b7fe;
     }
     
+    /* ANIMASI PASSWORD STRENGTH YANG BAGUS */
     .password-strength .progress {
-        border-radius: 3px;
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e9ecef;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .password-strength .progress-bar {
+        border-radius: 4px;
+        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .password-strength small {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: color 0.3s ease;
     }
     
     @media (max-width: 768px) {
@@ -327,199 +336,249 @@
         .btn-lg {
             padding: 0.75rem 1rem;
         }
+        
+        .password-strength .progress {
+            height: 6px;
+        }
     }
 </style>
 
+@endsection
+
+@section('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('passwordInput');
-        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-        const confirmPassword = document.getElementById('confirmPassword');
-        
-        if (togglePassword && passwordInput) {
-            togglePassword.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-            });
-        }
-        
-        if (toggleConfirmPassword && confirmPassword) {
-            toggleConfirmPassword.addEventListener('click', function() {
-                const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-                confirmPassword.setAttribute('type', type);
-                this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-            });
-        }
-       
-        if (passwordInput) {
-            passwordInput.addEventListener('input', function() {
-                const password = this.value;
-                const strengthBar = document.getElementById('passwordStrength');
-                const strengthHint = document.getElementById('passwordHint');
-                
-                let strength = 0;
-                let hint = '';
-                
-                if (password.length >= 8) strength += 25;
-                if (/[A-Z]/.test(password)) strength += 25;
-                if (/[0-9]/.test(password)) strength += 25;
-                if (/[^A-Za-z0-9]/.test(password)) strength += 25;
-                
-                if (strength <= 25) {
-                    strengthBar.className = 'progress-bar bg-danger';
-                    hint = 'Lemah';
-                } else if (strength <= 50) {
-                    strengthBar.className = 'progress-bar bg-warning';
-                    hint = 'Cukup';
-                } else if (strength <= 75) {
-                    strengthBar.className = 'progress-bar bg-info';
-                    hint = 'Baik';
-                } else {
-                    strengthBar.className = 'progress-bar bg-success';
-                    hint = 'Kuat';
-                }
-                
-                strengthBar.style.width = strength + '%';
-                strengthHint.textContent = hint + ' • ' + (password.length > 0 ? password.length + ' karakter' : 'Kekuatan password');
-                
-                checkPasswordMatch();
-            });
-        }
-        
-        if (confirmPassword) {
-            confirmPassword.addEventListener('input', checkPasswordMatch);
-        }
-        
-        function checkPasswordMatch() {
-            const password = passwordInput.value;
-            const confirm = confirmPassword.value;
-            const matchText = document.getElementById('passwordMatchText');
+document.addEventListener('DOMContentLoaded', function() {
+    
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+    }
+    
+    if (toggleConfirmPassword && confirmPassword) {
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPassword.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+    }
+   
+    // ANIMASI PASSWORD STRENGTH YANG LEBIH BAGUS
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrength');
+            const strengthHint = document.getElementById('passwordHint');
             
-            if (!password || !confirm) {
-                matchText.textContent = 'Masukkan password di kedua field';
-                matchText.className = 'form-text text-muted';
+            let strength = 0;
+            let hint = '';
+            let colorClass = '';
+            let textColorClass = '';
+            
+            // Hitung kekuatan password dengan kriteria yang lebih detail
+            if (password.length > 0) {
+                if (password.length >= 8) strength += 20;
+                if (password.length >= 12) strength += 10;
+                if (/[A-Z]/.test(password)) strength += 20;
+                if (/[a-z]/.test(password)) strength += 20;
+                if (/[0-9]/.test(password)) strength += 20;
+                if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+                
+                // Batasi maksimal 100%
+                if (strength > 100) strength = 100;
+            }
+            
+            // Tentukan warna berdasarkan kekuatan
+            if (strength === 0) {
+                colorClass = '';
+                hint = 'Kekuatan password';
+                textColorClass = 'text-muted';
+            } else if (strength <= 25) {
+                colorClass = 'bg-danger';
+                hint = 'Lemah';
+                textColorClass = 'text-danger';
+            } else if (strength <= 50) {
+                colorClass = 'bg-warning';
+                hint = 'Cukup';
+                textColorClass = 'text-warning';
+            } else if (strength <= 75) {
+                colorClass = 'bg-info';
+                hint = 'Baik';
+                textColorClass = 'text-info';
+            } else {
+                colorClass = 'bg-success';
+                hint = 'Kuat';
+                textColorClass = 'text-success';
+            }
+            
+            // Update progress bar dengan animasi smooth
+            if (strengthBar) {
+                strengthBar.className = 'progress-bar ' + colorClass;
+                strengthBar.style.width = strength + '%';
+                strengthBar.setAttribute('aria-valuenow', strength);
+            }
+            
+            // Update teks hint dengan animasi warna
+            if (strengthHint) {
+                if (password.length === 0) {
+                    strengthHint.textContent = 'Kekuatan password';
+                    strengthHint.className = 'text-muted';
+                } else {
+                    strengthHint.textContent = hint + ' • ' + password.length + ' karakter';
+                    strengthHint.className = textColorClass + ' fw-bold';
+                    
+                    // Tambahkan efek pulsing untuk feedback visual
+                    strengthHint.style.transition = 'color 0.3s ease';
+                }
+            }
+            
+            checkPasswordMatch();
+        });
+        
+        // Trigger initial state
+        passwordInput.dispatchEvent(new Event('input'));
+    }
+    
+    if (confirmPassword) {
+        confirmPassword.addEventListener('input', checkPasswordMatch);
+    }
+    
+    function checkPasswordMatch() {
+        const password = passwordInput ? passwordInput.value : '';
+        const confirm = confirmPassword ? confirmPassword.value : '';
+        const matchText = document.getElementById('passwordMatchText');
+        
+        if (!matchText) return;
+        
+        if (!password || !confirm) {
+            matchText.textContent = 'Masukkan password di kedua field';
+            matchText.className = 'form-text text-muted';
+            return;
+        }
+        
+        if (password === confirm) {
+            matchText.textContent = '✓ Password cocok';
+            matchText.className = 'form-text text-success fw-bold';
+        } else {
+            matchText.textContent = '✗ Password tidak cocok';
+            matchText.className = 'form-text text-danger fw-bold';
+        }
+    }
+
+    const roleSelect = document.getElementById('roleSelect');
+    const roleDescription = document.getElementById('roleDescription');
+    const additionalInfo = document.getElementById('additionalInfo');
+    const additionalInfoText = document.getElementById('additionalInfoText');
+    const divisionSelect = document.getElementById('divisionSelect');
+    
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            const role = this.value;
+            
+            let description = '';
+            let infoText = '';
+            let showAdditional = false;
+            
+            switch(role) {
+                case 'PIC':
+                    description = 'Person In Charge - Bertanggung jawab pada tugas divisi tertentu';
+                    infoText = 'PIC akan bertanggung jawab pada laporan tugas di divisi yang dipilih. Mereka dapat membuat dan mengirim laporan progress.';
+                    showAdditional = true;
+                    divisionSelect.disabled = false;
+                    break;
+                case 'supervisor':
+                    description = 'Supervisor - Memantau progress dan menyetujui laporan';
+                    infoText = 'Supervisor memiliki akses untuk memantau semua divisi, menyetujui laporan, dan mengelola akun PIC.';
+                    showAdditional = true;
+                    divisionSelect.disabled = true;
+                    divisionSelect.value = '';
+                    break;
+                case 'admin_divisi':
+                    description = 'Admin Divisi - Mengelola divisi dan anggotanya';
+                    infoText = 'Admin Divisi bertanggung jawab mengelola anggota divisi dan koordinasi internal divisi.';
+                    showAdditional = true;
+                    divisionSelect.disabled = false;
+                    break;
+            }
+            
+            roleDescription.textContent = description;
+            additionalInfoText.textContent = infoText;
+            
+            if (showAdditional) {
+                additionalInfo.style.display = 'block';
+            } else {
+                additionalInfo.style.display = 'none';
+            }
+          
+            const divisionInfo = document.getElementById('divisionInfo');
+            if (role === 'supervisor') {
+                divisionInfo.textContent = 'Supervisor dapat mengakses semua divisi';
+                divisionInfo.className = 'form-text text-info';
+            } else {
+                divisionInfo.textContent = 'Pilih divisi tempat user bertugas';
+                divisionInfo.className = 'form-text text-muted';
+            }
+        });
+        
+        roleSelect.dispatchEvent(new Event('change'));
+    }
+    
+    const createUserForm = document.getElementById('createUserForm');
+    if (createUserForm) {
+        createUserForm.addEventListener('submit', function(e) {
+           
+            if (passwordInput.value !== confirmPassword.value) {
+                e.preventDefault();
+                showToast('Password tidak cocok! Silahkan periksa kembali.', 'error');
+                return;
+            }
+       
+            const role = roleSelect.value;
+            const division = divisionSelect.value;
+            
+            if (role !== 'supervisor' && !division) {
+                e.preventDefault();
+                showToast('Silahkan pilih divisi untuk user ini.', 'error');
                 return;
             }
             
-            if (password === confirm) {
-                matchText.textContent = '✓ Password cocok';
-                matchText.className = 'form-text text-success fw-bold';
-            } else {
-                matchText.textContent = '✗ Password tidak cocok';
-                matchText.className = 'form-text text-danger fw-bold';
-            }
-        }
-    
-        const roleSelect = document.getElementById('roleSelect');
-        const roleDescription = document.getElementById('roleDescription');
-        const additionalInfo = document.getElementById('additionalInfo');
-        const additionalInfoText = document.getElementById('additionalInfoText');
-        const divisionSelect = document.getElementById('divisionSelect');
-        
-        if (roleSelect) {
-            roleSelect.addEventListener('change', function() {
-                const role = this.value;
-                
-                let description = '';
-                let infoText = '';
-                let showAdditional = false;
-                
-                switch(role) {
-                    case 'PIC':
-                        description = 'Person In Charge - Bertanggung jawab pada tugas divisi tertentu';
-                        infoText = 'PIC akan bertanggung jawab pada laporan tugas di divisi yang dipilih. Mereka dapat membuat dan mengirim laporan progress.';
-                        showAdditional = true;
-                        divisionSelect.disabled = false;
-                        break;
-                    case 'supervisor':
-                        description = 'Supervisor - Memantau progress dan menyetujui laporan';
-                        infoText = 'Supervisor memiliki akses untuk memantau semua divisi, menyetujui laporan, dan mengelola akun PIC.';
-                        showAdditional = true;
-                        divisionSelect.disabled = true;
-                        divisionSelect.value = '';
-                        break;
-                    case 'admin_divisi':
-                        description = 'Admin Divisi - Mengelola divisi dan anggotanya';
-                        infoText = 'Admin Divisi bertanggung jawab mengelola anggota divisi dan koordinasi internal divisi.';
-                        showAdditional = true;
-                        divisionSelect.disabled = false;
-                        break;
-                }
-                
-                roleDescription.textContent = description;
-                additionalInfoText.textContent = infoText;
-                
-                if (showAdditional) {
-                    additionalInfo.style.display = 'block';
-                } else {
-                    additionalInfo.style.display = 'none';
-                }
-              
-                const divisionInfo = document.getElementById('divisionInfo');
-                if (role === 'supervisor') {
-                    divisionInfo.textContent = 'Supervisor dapat mengakses semua divisi';
-                    divisionInfo.className = 'form-text text-info';
-                } else {
-                    divisionInfo.textContent = 'Pilih divisi tempat user bertugas';
-                    divisionInfo.className = 'form-text text-muted';
-                }
-            });
+            // If validation passes, allow form submission
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('submitSpinner');
+            const submitText = submitBtn.querySelector('span:first-of-type');
             
-            roleSelect.dispatchEvent(new Event('change'));
-        }
-        
-        const createUserForm = document.getElementById('createUserForm');
-        if (createUserForm) {
-            createUserForm.addEventListener('submit', function(e) {
-               
-                if (passwordInput.value !== confirmPassword.value) {
-                    e.preventDefault();
-                    showToast('Password tidak cocok! Silahkan periksa kembali.', 'error');
-                    return;
-                }
-           
-                const role = roleSelect.value;
-                const division = divisionSelect.value;
-                
-                if (role !== 'supervisor' && !division) {
-                    e.preventDefault();
-                    showToast('Silahkan pilih divisi untuk user ini.', 'error');
-                    return;
-                }
-                
-                // If validation passes, allow form submission
-                const submitBtn = document.getElementById('submitBtn');
-                const spinner = document.getElementById('submitSpinner');
-                const submitText = submitBtn.querySelector('span:first-of-type');
-                
-                submitText.textContent = 'Menyimpan...';
-                spinner.style.display = 'inline-block';
-                submitBtn.disabled = true;
-            });
-        }
+            submitText.textContent = 'Menyimpan...';
+            spinner.style.display = 'inline-block';
+            submitBtn.disabled = true;
+        });
+    }
 
-        const successToast = new bootstrap.Toast(document.getElementById('successToast'));
-        function showToast(message, type = 'success') {
-            const toastEl = document.getElementById('successToast');
-            const toastBody = toastEl.querySelector('.toast-body');
-            
-            toastBody.textContent = message;
-            
-            if (type === 'error') {
-                toastEl.querySelector('.toast-header').className = 'toast-header bg-danger text-white';
-                toastEl.querySelector('.toast-header i').className = 'fas fa-exclamation-circle me-2';
-                toastEl.querySelector('.toast-header strong').textContent = 'Error';
-            } else {
-                toastEl.querySelector('.toast-header').className = 'toast-header bg-success text-white';
-                toastEl.querySelector('.toast-header i').className = 'fas fa-check-circle me-2';
-                toastEl.querySelector('.toast-header strong').textContent = 'Berhasil';
-            }
-            
-            successToast.show();
+    const successToast = new bootstrap.Toast(document.getElementById('successToast'));
+    function showToast(message, type = 'success') {
+        const toastEl = document.getElementById('successToast');
+        const toastBody = toastEl.querySelector('.toast-body');
+        
+        toastBody.textContent = message;
+        
+        if (type === 'error') {
+            toastEl.querySelector('.toast-header').className = 'toast-header bg-danger text-white';
+            toastEl.querySelector('.toast-header i').className = 'fas fa-exclamation-circle me-2';
+            toastEl.querySelector('.toast-header strong').textContent = 'Error';
+        } else {
+            toastEl.querySelector('.toast-header').className = 'toast-header bg-success text-white';
+            toastEl.querySelector('.toast-header i').className = 'fas fa-check-circle me-2';
+            toastEl.querySelector('.toast-header strong').textContent = 'Berhasil';
         }
-    });
+        
+        successToast.show();
+    }
+});
 </script>
 @endsection

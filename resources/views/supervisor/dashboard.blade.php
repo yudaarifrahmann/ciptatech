@@ -40,9 +40,9 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Total Laporan Masuk</h6>
-                            <h2 class="fw-bold mb-0">42</h2>
+                            <h2 class="fw-bold mb-0">{{ $totalReports }}</h2>
                             <small class="text-success">
-                                <i class="fas fa-arrow-up me-1"></i>12% dari bulan lalu
+                                <i class="fas fa-arrow-up me-1"></i>{{ $approvedReports }} disetujui
                             </small>
                         </div>
                         <div class="stat-icon">
@@ -57,9 +57,9 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Pekerjaan Disetujui</h6>
-                            <h2 class="fw-bold mb-0">28</h2>
+                            <h2 class="fw-bold mb-0">{{ $approvedReports }}</h2>
                             <small class="text-success">
-                                <i class="fas fa-check-circle me-1"></i>67% approval rate
+                                <i class="fas fa-check-circle me-1"></i>{{ $totalReports > 0 ? round(($approvedReports / $totalReports) * 100) : 0 }}% approval rate
                             </small>
                         </div>
                         <div class="stat-icon">
@@ -74,7 +74,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Menunggu / Revisi</h6>
-                            <h2 class="fw-bold mb-0">14</h2>
+                            <h2 class="fw-bold mb-0">{{ $pendingRevision }}</h2>
                             <small class="text-warning">
                                 <i class="fas fa-clock me-1"></i>Perlu ditinjau
                             </small>
@@ -91,7 +91,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Total Divisi</h6>
-                            <h2 class="fw-bold mb-0">8</h2>
+                            <h2 class="fw-bold mb-0">{{ $totalDivisions }}</h2>
                             <small class="text-info">
                                 <i class="fas fa-users me-1"></i>Aktif semua
                             </small>
@@ -145,162 +145,69 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @forelse($divisions as $division)
+                                @php
+                                    $statusColorMap = [
+                                        'optimal' => ['bg' => 'rgba(13, 202, 240, 0.1)', 'border' => '#0cc7f0', 'text' => '#0cc7f0', 'icon' => 'fa-tachometer-alt', 'label' => 'Optimal', 'icon-bg' => 'rgba(13, 202, 240, 0.1)'],
+                                        'on-track' => ['bg' => 'rgba(25, 135, 84, 0.1)', 'border' => '#198754', 'text' => '#198754', 'icon' => 'fa-check-circle', 'label' => 'On Track', 'icon-bg' => 'rgba(25, 135, 84, 0.1)'],
+                                        'attention' => ['bg' => 'rgba(255, 193, 7, 0.1)', 'border' => '#ffc107', 'text' => '#ffc107', 'icon' => 'fa-exclamation-triangle', 'label' => 'Perlu Perhatian', 'icon-bg' => 'rgba(255, 193, 7, 0.1)'],
+                                        'critical' => ['bg' => 'rgba(220, 53, 69, 0.1)', 'border' => '#dc3545', 'text' => '#dc3545', 'icon' => 'fa-exclamation-circle', 'label' => 'Kritis', 'icon-bg' => 'rgba(220, 53, 69, 0.1)']
+                                    ];
+                                    $colors = $statusColorMap[$division->status] ?? $statusColorMap['critical'];
+                                    $divisionIcons = [
+                                        'Multimedia' => 'fa-photo-video',
+                                        'Software Host' => 'fa-server',
+                                        'IT Support' => 'fa-headset',
+                                    ];
+                                    $divisionIcon = $divisionIcons[$division->name] ?? 'fa-network-wired';
+                                    $buttonIcon = $division->status === 'attention' ? 'fa-exclamation-circle' : ($division->status === 'on-track' ? 'fa-eye' : 'fa-chart-bar');
+                                    $buttonText = $division->status === 'attention' ? 'Review' : ($division->status === 'on-track' ? 'View' : 'Analytics');
+                                @endphp
                                 <tr>
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
                                             <div class="division-icon me-3">
-                                                <div class="icon-wrapper bg-primary bg-opacity-10 p-2 rounded-circle">
-                                                    <i class="fas fa-photo-video text-primary"></i>
+                                                <div class="icon-wrapper p-2 rounded-circle" style="background-color: {{ $colors['icon-bg'] }};">
+                                                    <i class="fas {{ $divisionIcon }}" style="color: {{ $colors['text'] }};"></i>
                                                 </div>
                                             </div>
                                             <div>
-                                                <strong class="d-block">Multimedia</strong>
-                                                <small class="text-muted">15 proyek aktif</small>
+                                                <strong class="d-block">{{ $division->name }}</strong>
+                                                <small class="text-muted">{{ $division->active_projects }} proyek aktif</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="progress-wrapper" style="min-width: 150px;">
                                             <div class="d-flex justify-content-between mb-1">
-                                                <small>75%</small>
+                                                <small>{{ $division->avg_progress }}%</small>
                                                 <small>100%</small>
                                             </div>
                                             <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-success" role="progressbar" 
-                                                     style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {{ $division->avg_progress }}%; background-color: {{ $colors['text'] }};" aria-valuenow="{{ $division->avg_progress }}" aria-valuemin="0" aria-valuemax="100">
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-                                            <i class="fas fa-check-circle me-1"></i>On Track
+                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: {{ $colors['bg'] }}; color: {{ $colors['text'] }}; border: 1px solid {{ $colors['border'] }}; border-opacity: 0.25;">
+                                            <i class="fas {{ $division->status_icon }} me-1"></i>{{ $division->status_label }}
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <button class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-eye me-1"></i>View
+                                        <button class="btn btn-sm division-action-btn" data-status="{{ $division->status }}" style="border: 1px solid {{ $colors['border'] }}; color: {{ $colors['text'] }};">
+                                            <i class="fas {{ $buttonIcon }} me-1"></i>{{ $buttonText }}
                                         </button>
                                     </td>
                                 </tr>
-                                
+                                @empty
                                 <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="division-icon me-3">
-                                                <div class="icon-wrapper bg-warning bg-opacity-10 p-2 rounded-circle">
-                                                    <i class="fas fa-server text-warning"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <strong class="d-block">Software Host</strong>
-                                                <small class="text-muted">10 proyek aktif</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="progress-wrapper" style="min-width: 150px;">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <small>60%</small>
-                                                <small>100%</small>
-                                            </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-warning" role="progressbar" 
-                                                     style="width: 60%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>Perlu Perhatian
-                                        </span>
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <button class="btn btn-outline-warning btn-sm">
-                                            <i class="fas fa-exclamation-circle me-1"></i>Review
-                                        </button>
+                                    <td colspan="4" class="text-center py-4">
+                                        <p class="text-muted mb-0">Tidak ada divisi yang aktif</p>
                                     </td>
                                 </tr>
-                                
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="division-icon me-3">
-                                                <div class="icon-wrapper bg-success bg-opacity-10 p-2 rounded-circle">
-                                                    <i class="fas fa-headset text-success"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <strong class="d-block">IT Support</strong>
-                                                <small class="text-muted">8 proyek aktif</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="progress-wrapper" style="min-width: 150px;">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <small>90%</small>
-                                                <small>100%</small>
-                                            </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-success" role="progressbar" 
-                                                     style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-                                            <i class="fas fa-shield-alt me-1"></i>Stabil
-                                        </span>
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <button class="btn btn-outline-success btn-sm">
-                                            <i class="fas fa-chart-bar me-1"></i>Analytics
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <!-- Additional divisions -->
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="division-icon me-3">
-                                                <div class="icon-wrapper bg-info bg-opacity-10 p-2 rounded-circle">
-                                                    <i class="fas fa-network-wired text-info"></i>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <strong class="d-block">Network</strong>
-                                                <small class="text-muted">12 proyek aktif</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="progress-wrapper" style="min-width: 150px;">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <small>80%</small>
-                                                <small>100%</small>
-                                            </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-info" role="progressbar" 
-                                                     style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill">
-                                            <i class="fas fa-tachometer-alt me-1"></i>Optimal
-                                        </span>
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <button class="btn btn-outline-info btn-sm">
-                                            <i class="fas fa-eye me-1"></i>View
-                                        </button>
-                                    </td>
-                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -329,35 +236,21 @@
                 </div>
                 <div class="card-body">
                     <div class="list-group list-group-flush">
+                        @forelse($pendingReviews as $review)
                         <a href="#" class="list-group-item list-group-item-action border-0 py-2 px-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <small class="fw-bold">Implementasi Login</small>
-                                    <div class="text-muted small">Multimedia • Deadline: 5 Jan</div>
+                                    <small class="fw-bold">{{ $review->task_name }}</small>
+                                    <div class="text-muted small">{{ $review->division_name ?? 'N/A' }} • Deadline: {{ $review->deadline }}</div>
                                 </div>
                                 <span class="badge bg-warning">Baru</span>
                             </div>
                         </a>
-                        
-                        <a href="#" class="list-group-item list-group-item-action border-0 py-2 px-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="fw-bold">Update Dashboard</small>
-                                    <div class="text-muted small">Software Host • Deadline: 7 Jan</div>
-                                </div>
-                                <span class="badge bg-warning">2 hari</span>
-                            </div>
-                        </a>
-                        
-                        <a href="#" class="list-group-item list-group-item-action border-0 py-2 px-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="fw-bold">Maintenance Server</small>
-                                    <div class="text-muted small">IT Support • Deadline: 10 Jan</div>
-                                </div>
-                                <span class="badge bg-secondary">1 minggu</span>
-                            </div>
-                        </a>
+                        @empty
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-0">Tidak ada laporan yang menunggu review</p>
+                        </div>
+                        @endforelse
                     </div>
                 </div>
                 <div class="card-footer bg-white border-0 py-2">
@@ -378,15 +271,21 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-placeholder text-center">
+                        @php
+                            $total = $reportStats['approved'] + $reportStats['pending'] + $reportStats['revision'];
+                            $approvedPercent = $total > 0 ? ($reportStats['approved'] / $total) * 100 : 0;
+                            $pendingPercent = $total > 0 ? ($reportStats['pending'] / $total) * 100 : 0;
+                            $revisionPercent = $total > 0 ? ($reportStats['revision'] / $total) * 100 : 0;
+                        @endphp
                         <div class="doughnut-chart mx-auto mb-3" style="width: 150px; height: 150px; position: relative;">
                             <div class="chart-segment" style="
                                 width: 100%;
                                 height: 100%;
                                 border-radius: 50%;
                                 background: conic-gradient(
-                                    #0d6efd 0% 67%,
-                                    #ffc107 67% 86%,
-                                    #dc3545 86% 100%
+                                    #0d6efd 0% {{ $approvedPercent }}%,
+                                    #ffc107 {{ $approvedPercent }}% {{ $approvedPercent + $pendingPercent }}%,
+                                    #dc3545 {{ $approvedPercent + $pendingPercent }}% 100%
                                 );
                             "></div>
                             <div class="chart-center" style="
@@ -402,7 +301,7 @@
                                 justify-content: center;
                             ">
                                 <div class="text-center">
-                                    <div class="fw-bold">42</div>
+                                    <div class="fw-bold">{{ $total }}</div>
                                     <small class="text-muted">Total</small>
                                 </div>
                             </div>
@@ -413,21 +312,21 @@
                                 <div class="col-4">
                                     <div class="legend-item">
                                         <div class="legend-color" style="background-color: #0d6efd; width: 12px; height: 12px; border-radius: 2px; margin: 0 auto 4px;"></div>
-                                        <small class="d-block fw-bold">28</small>
+                                        <small class="d-block fw-bold">{{ $reportStats['approved'] }}</small>
                                         <small class="text-muted">Disetujui</small>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="legend-item">
                                         <div class="legend-color" style="background-color: #ffc107; width: 12px; height: 12px; border-radius: 2px; margin: 0 auto 4px;"></div>
-                                        <small class="d-block fw-bold">10</small>
+                                        <small class="d-block fw-bold">{{ $reportStats['pending'] }}</small>
                                         <small class="text-muted">Menunggu</small>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="legend-item">
                                         <div class="legend-color" style="background-color: #dc3545; width: 12px; height: 12px; border-radius: 2px; margin: 0 auto 4px;"></div>
-                                        <small class="d-block fw-bold">4</small>
+                                        <small class="d-block fw-bold">{{ $reportStats['revision'] }}</small>
                                         <small class="text-muted">Revisi</small>
                                     </div>
                                 </div>
@@ -559,6 +458,15 @@
         padding: 0.5rem 0;
     }
     
+    .division-action-btn {
+        border: 1px solid;
+        transition: background-color 0.2s ease;
+    }
+    
+    .division-action-btn:hover {
+        border-color: inherit;
+    }
+    
     @media (max-width: 768px) {
         .dashboard-header {
             padding: 1.5rem;
@@ -652,15 +560,33 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const viewButtons = document.querySelectorAll('.btn-outline-primary, .btn-outline-warning, .btn-outline-success, .btn-outline-info');
-        viewButtons.forEach(button => {
-            if (button.textContent.includes('View') || button.textContent.includes('Review') || button.textContent.includes('Analytics')) {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const division = this.closest('tr').querySelector('strong').textContent;
-                    console.log(`View details for ${division}`);
-                });
-            }
+        // Color mapping for division statuses
+        const statusColors = {
+            'optimal': { border: '#0cc7f0', text: '#0cc7f0', bg: 'rgba(13, 202, 240, 0.1)' },
+            'on-track': { border: '#198754', text: '#198754', bg: 'rgba(25, 135, 84, 0.1)' },
+            'attention': { border: '#ffc107', text: '#ffc107', bg: 'rgba(255, 193, 7, 0.1)' },
+            'critical': { border: '#dc3545', text: '#dc3545', bg: 'rgba(220, 53, 69, 0.1)' }
+        };
+        
+        // Division action buttons hover effects
+        const actionButtons = document.querySelectorAll('.division-action-btn');
+        actionButtons.forEach(button => {
+            const status = button.dataset.status;
+            const colors = statusColors[status] || statusColors.critical;
+            
+            button.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = colors.bg;
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+            
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const division = this.closest('tr').querySelector('strong').textContent;
+                console.log(`View details for ${division}`);
+            });
         });
         
         const pendingItems = document.querySelectorAll('.list-group-item-action');
