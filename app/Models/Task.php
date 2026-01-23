@@ -13,9 +13,12 @@ class Task extends Model
         'division_id',
         'supervisor_id',
         'title',
+        'task_item_title',
         'description',
         'deadline',
         'status',
+        'task_group_id',
+        'task_order',
     ];
 
     protected $casts = [

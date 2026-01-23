@@ -70,12 +70,12 @@
                             <small class="text-muted d-block mb-2">Progress Submission:</small>
                             @php
                                 $submissions = $task->submissions;
-                                $approved = $submissions->where('status', 'approved')->count();
+                                $approved = $submissions->whereIn('status', ['approved', 'completed'])->count();
                                 $total = $submissions->count();
                                 $percentage = $total > 0 ? ($approved / $total) * 100 : 0;
                             @endphp
                             <div class="progress">
-                                <div class="progress-bar bg-success" role="progressbar" 
+                                <div class="progress-bar {{ $percentage == 100 ? 'bg-success' : 'bg-warning' }}" role="progressbar" 
                                      style="width: {{ $percentage }}%" 
                                      aria-valuenow="{{ $approved }}" 
                                      aria-valuemin="0" 

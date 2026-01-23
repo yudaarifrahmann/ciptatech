@@ -17,21 +17,16 @@ class TaskController extends Controller
         $division = $pic->division;
 
         if (!$division) {
-            return view('pic.tasks.index', ['submissions' => []]);
+            return view('pic.tasks.index', ['tasks' => []]);
         }
 
-        // Get task submissions for this PIC from parent tasks only (task_group_id is null)
-        $submissions = TaskSubmission::where('pic_id', $pic->id)
-            ->with(['task' => function ($query) {
-                $query->where('task_group_id', null)->with('supervisor');
-            }])
-            ->get()
-            ->filter(function ($submission) {
-                return $submission->task !== null; // Only parent tasks
-            })
-            ->values();
+        // Get tasks assigned to this division (parent tasks only, task_group_id is null)
+        $tasks = Task::where('division_id', $division->id)
+            ->where('task_group_id', null)
+            ->with('supervisor')
+            ->get();
 
-        return view('pic.tasks.index', compact('submissions'));
+        return view('pic.tasks.index', compact('tasks'));
     }
 
     public function show(Task $task)
@@ -180,16 +175,18 @@ class TaskController extends Controller
         }
 
         try {
-            // Handle file upload
+            // Handle file upload - save to storage/task
             $evidencePath = null;
             if ($request->hasFile('evidence')) {
-                $evidencePath = $request->file('evidence')->store('task-evidence/' . $submission->id);
+                $fileName = uniqid() . '_' . $request->file('evidence')->getClientOriginalName();
+                $evidencePath = $request->file('evidence')->storeAs('task', $fileName, 'public');
             }
 
             // Mark task as completed
             \DB::table('completed_tasks')->insert([
                 'task_submission_id' => $submission->id,
                 'task_id' => $task->id,
+                'evidence_path' => $evidencePath,
                 'completed_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -197,6 +194,11 @@ class TaskController extends Controller
 
             // Increment completed count
             $submission->increment('completed_tasks_count');
+
+            // Update individual task status to complete
+            $task->update([
+                'status' => 'complete',
+            ]);
 
             // Store evidence and notes if provided
             if ($evidencePath || $request->has('notes')) {
@@ -224,16 +226,22 @@ class TaskController extends Controller
                 ->where('task_submission_id', $submission->id)
                 ->count();
 
-            if ($totalCompleted === $childTasks) {
+            if ($totalCompleted === $childTasks && $childTasks > 0) {
                 $submission->update([
                     'status' => 'completed',
                     'completed_at' => now(),
+                ]);
+                
+                // Update parent task status to submitted (ready for review)
+                $parentTask->update([
+                    'status' => 'submitted',
                 ]);
             }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Tugas berhasil ditandai selesai',
+                'task_id' => $task->id,
                 'completed_count' => $totalCompleted,
                 'total_count' => $childTasks,
             ]);

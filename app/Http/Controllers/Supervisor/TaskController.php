@@ -15,8 +15,9 @@ class TaskController extends Controller
     {
         $supervisor = Auth::user();
         
-        // Get tasks created by this supervisor
+        // Get only parent tasks (task_group_id is null) created by this supervisor
         $tasks = Task::where('supervisor_id', $supervisor->id)
+            ->where('task_group_id', null) // Only parent tasks
             ->with('division', 'submissions')
             ->latest()
             ->paginate(10);
@@ -34,7 +35,6 @@ class TaskController extends Controller
                 ->with('error', 'Anda belum ditugaskan ke divisi manapun');
         }
 
-        // Get all PIC in this division
         $pics = User::where('division_id', $division->id)
             ->where('role', 'PIC')
             ->where('is_active', true)
@@ -54,40 +54,23 @@ class TaskController extends Controller
         }
 
         $validated = $request->validate([
-            'main_title' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'deadline' => 'nullable|date|after_or_equal:today',
-            'tasks' => 'required|array|min:1',
-            'tasks.*.title' => 'required|string|max:255',
+            'deadline' => 'required|date|after_or_equal:today',
         ]);
 
-        // Create task group
+        // Create parent task (task group)
         $taskGroup = Task::create([
             'division_id' => $division->id,
             'supervisor_id' => $supervisor->id,
-            'title' => $validated['main_title'],
+            'title' => $validated['title'],
             'description' => $validated['description'],
             'deadline' => $validated['deadline'],
             'status' => 'pending',
-            'task_group_id' => null, // Parent task
+            'task_group_id' => null, 
         ]);
 
-        // Create individual tasks
-        foreach ($validated['tasks'] as $order => $taskData) {
-            Task::create([
-                'division_id' => $division->id,
-                'supervisor_id' => $supervisor->id,
-                'title' => $validated['main_title'],
-                'task_item_title' => $taskData['title'],
-                'description' => $validated['description'],
-                'deadline' => $validated['deadline'],
-                'status' => 'pending',
-                'task_group_id' => $taskGroup->id,
-                'task_order' => $order,
-            ]);
-        }
-
-        // Auto-assign to all PIC in division
+        // Auto-assign ke semua PIC
         $pics = User::where('division_id', $division->id)
             ->where('role', 'PIC')
             ->where('is_active', true)
@@ -105,7 +88,7 @@ class TaskController extends Controller
         $taskGroup->update(['status' => 'assigned']);
 
         return redirect()->route('supervisor.tasks.index')
-            ->with('success', "Tugas grup '{$taskGroup->title}' dengan " . count($validated['tasks']) . " item tugas berhasil dibuat dan ditugaskan ke semua PIC di divisi Anda");
+            ->with('success', "Tugas '{$validated['title']}' berhasil dibuat untuk divisi {$division->name}");
     }
 
     public function show(Task $task)

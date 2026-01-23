@@ -81,11 +81,60 @@
                             <!-- Submission File -->
                             @if ($submission->submission_file)
                                 <div class="mb-3">
-                                    <a href="{{ asset('storage/' . $submission->submission_file) }}" 
-                                       target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-download me-1"></i>
-                                        Download File
-                                    </a>
+                                    @php
+                                        $fileUrl = asset('storage/' . $submission->submission_file);
+                                        $fileName = basename($submission->submission_file);
+                                        $fileExt = strtolower(pathinfo($submission->submission_file, PATHINFO_EXTENSION));
+                                        $isImage = in_array($fileExt, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                        $isPdf = $fileExt === 'pdf';
+                                        $isDocument = in_array($fileExt, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt']);
+                                    @endphp
+
+                                    <div class="file-preview-section p-3 border rounded bg-light mb-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="text-muted fw-bold">
+                                                <i class="fas fa-file me-1"></i>File: {{ $fileName }}
+                                            </small>
+                                            <a href="{{ $fileUrl }}" download class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                                <i class="fas fa-download me-1"></i>Download
+                                            </a>
+                                        </div>
+
+                                        @if ($isImage)
+                                            <div class="image-preview mb-2">
+                                                <img src="{{ $fileUrl }}" alt="{{ $fileName }}" class="img-fluid rounded" style="max-height: 300px; max-width: 100%;">
+                                            </div>
+                                        @elseif ($isPdf)
+                                            <div class="pdf-preview mb-2">
+                                                <iframe src="{{ $fileUrl }}" width="100%" height="400px" class="rounded border"></iframe>
+                                            </div>
+                                        @elseif ($isDocument)
+                                            <div class="document-preview p-2 bg-white rounded border">
+                                                <div class="text-center py-4">
+                                                    <i class="fas fa-file-{{ ($fileExt === 'txt') ? 'alt' : ($fileExt === 'pdf' ? 'pdf' : 'word') }} fa-2x text-muted mb-2 d-block"></i>
+                                                    <small class="text-muted">
+                                                        File {{ strtoupper($fileExt) }} tidak bisa dipreview di browser<br>
+                                                        Silakan download untuk membukanya
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="file-preview p-2 bg-white rounded border">
+                                                <div class="text-center py-4">
+                                                    <i class="fas fa-file fa-2x text-muted mb-2 d-block"></i>
+                                                    <small class="text-muted">
+                                                        File dengan format {{ strtoupper($fileExt) }} tidak bisa dipreview<br>
+                                                        Silakan download untuk membukanya
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Tipe file: {{ strtoupper($fileExt) }}
+                                        </small>
+                                    </div>
                                 </div>
                             @endif
 

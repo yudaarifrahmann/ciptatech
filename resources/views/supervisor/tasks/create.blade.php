@@ -6,195 +6,123 @@
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-md-10">
-            <!-- Header -->
-            <div class="mb-4">
-                <h2 class="fw-bold mb-2">
-                    <i class="fas fa-plus-circle me-2 text-primary"></i>
-                    Tambah Tugas Grup
-                </h2>
-                <p class="text-muted mb-0">Buat tugas dengan multiple items untuk divisi: <strong>{{ $division->name }}</strong></p>
-            </div>
-
-            <!-- Form -->
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <strong>Ada kesalahan:</strong>
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form action="{{ route('supervisor.tasks.store') }}" method="POST">
-                        @csrf
-
-                        <!-- Main Title -->
-                        <div class="mb-4">
-                            <label for="main_title" class="form-label fw-bold">
-                                <i class="fas fa-heading me-2"></i>Judul Tugas Utama
-                            </label>
-                            <input type="text" class="form-control @error('main_title') is-invalid @enderror" 
-                                   id="main_title" name="main_title" placeholder="Contoh: Desain Material Marketing Q1 2026"
-                                   value="{{ old('main_title') }}" required>
-                            @error('main_title')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">Judul umum untuk group tugas ini</small>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="mb-4">
-                            <label for="description" class="form-label fw-bold">
-                                <i class="fas fa-align-left me-2"></i>Deskripsi Tugas
-                            </label>
-                            <textarea class="form-control @error('description') is-invalid @enderror" 
-                                      id="description" name="description" rows="4"
-                                      placeholder="Jelaskan konteks dan detail umum dari tugas">{{ old('description') }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Deadline -->
-                        <div class="mb-4">
-                            <label for="deadline" class="form-label fw-bold">
-                                <i class="fas fa-calendar-alt me-2"></i>Tanggal Deadline
-                            </label>
-                            <input type="date" class="form-control @error('deadline') is-invalid @enderror" 
-                                   id="deadline" name="deadline" value="{{ old('deadline') }}">
-                            @error('deadline')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Task Items -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-list-ul me-2"></i>Item-Item Tugas
-                            </label>
-                            <div id="task-items-container">
-                                <!-- Task items akan ditambah di sini -->
-                            </div>
-                            
-                            <button type="button" class="btn btn-outline-primary btn-sm mt-3" id="add-task-btn">
-                                <i class="fas fa-plus me-2"></i>Tambah Item Tugas
-                            </button>
-                        </div>
-
-                        <!-- Info -->
-                        <div class="alert alert-info border-0" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Catatan:</strong> Anda bisa menambah multiple item tugas dalam satu form. 
-                            PIC akan melihat semua item dalam bentuk checkbox list.
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Buat Tugas Grup
-                            </button>
-                            <a href="{{ route('supervisor.tasks.index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Kembali
-                            </a>
-                        </div>
-                    </form>
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        <i class="fas fa-tasks me-2 text-primary"></i>
+                        Buat Tugas Baru
+                    </h2>
+                    <p class="text-muted mb-0">Divisi: <strong>{{ $division->name }}</strong></p>
+                </div>
+                
+                <div class="bg-white p-3 rounded shadow-sm border" style="min-width: 250px;">
+                    <label for="deadline" class="form-label fw-bold small mb-1">
+                        <i class="fas fa-calendar-alt me-1 text-primary"></i> Tenggat Waktu
+                    </label>
+                    <input type="date" class="form-control @error('deadline') is-invalid @enderror" 
+                           id="deadline" name="deadline" form="task-form" value="{{ old('deadline') }}" required>
+                    @error('deadline')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
-            <!-- Assigned PICs Info -->
-            <div class="card shadow-sm border-0 mt-4">
-                <div class="card-header bg-light py-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="fas fa-users me-2"></i>
-                        PIC yang akan menerima tugas ini
-                    </h6>
-                </div>
-                <div class="card-body">
-                    @if ($pics->count() > 0)
-                        <div class="list-group list-group-flush">
-                            @foreach ($pics as $pic)
-                                <div class="list-group-item px-0 py-2">
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            <i class="fas fa-user-circle fa-2x text-primary"></i>
-                                        </div>
-                                        <div>
-                                            <strong>{{ $pic->name }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ $pic->email }}</small>
-                                        </div>
-                                    </div>
-                                </div>
+            <form id="task-form" action="{{ route('supervisor.tasks.store') }}" method="POST">
+                @csrf
+
+                @if ($errors->any() && !$errors->has('deadline'))
+                    <div class="alert alert-danger shadow-sm">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
                             @endforeach
-                        </div>
-                    @else
-                        <div class="alert alert-warning mb-0">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Belum ada PIC di divisi {{ $division->name }}
-                        </div>
-                    @endif
+                        </ul>
+                    </div>
+                @endif
+
+                <div id="task-items-container">
+                    </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4 pb-5">
+                    <button type="button" class="btn btn-outline-primary fw-bold" id="add-task-btn">
+                        <i class="fas fa-plus-circle me-2"></i>TAMBAH TUGAS
+                    </button>
+
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('supervisor.tasks.index') }}" class="btn btn-light border px-4">Batal</a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                            <i class="fas fa-save me-2"></i>SIMPAN TUGAS
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
 
 <style>
-    .form-label {
-        color: #333;
-        margin-bottom: 0.75rem;
-    }
-
-    .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-    }
-
-    textarea.form-control {
-        resize: vertical;
-        min-height: 100px;
-    }
-
-    .task-item {
-        background: #f8f9fa;
+    .task-card {
+        background: #fff;
         border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 12px 15px;
-        margin-bottom: 12px;
-        display: flex;
-        gap: 10px;
-        align-items: flex-start;
+        border-left: 5px solid #0d6efd;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        position: relative;
+        transition: all 0.3s ease;
     }
 
-    .task-item-input {
-        flex: 1;
+    .task-card:hover {
+        border-color: #0d6efd;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
     }
 
-    .task-item-input input {
-        width: 100%;
+    .task-label {
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: #495057;
+        letter-spacing: 0.5px;
     }
 
-    .task-item-remove {
-        flex-shrink: 0;
-        margin-top: 6px;
+    .desc-label {
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #adb5bd;
     }
 
-    .task-item-number {
-        background: #0d6efd;
-        color: white;
-        width: 32px;
-        height: 32px;
+    .remove-task {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: white;
+        color: #dc3545;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-        flex-shrink: 0;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        border: 1px solid #f8d7da;
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+    .remove-task:hover {
+        background: #dc3545;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 10px 15px;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
     }
 </style>
 
@@ -204,44 +132,68 @@
     function addTaskItem() {
         taskCount++;
         const container = document.getElementById('task-items-container');
+        const index = taskCount - 1;
         
-        const taskItem = document.createElement('div');
-        taskItem.className = 'task-item';
-        taskItem.innerHTML = `
-            <div class="task-item-number">${taskCount}</div>
-            <div class="task-item-input">
-                <input type="text" 
-                       name="tasks[${taskCount - 1}][title]" 
-                       class="form-control form-control-sm"
-                       placeholder="Deskripsi item tugas"
-                       required>
-            </div>
-            <div class="task-item-remove">
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeTaskItem(this)">
-                    <i class="fas fa-trash"></i>
-                </button>
+        const taskHtml = `
+            <div class="task-card shadow-sm">
+                <div class="remove-task" onclick="removeTaskItem(this)" title="Hapus Tugas">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label class="task-label mb-2 text-uppercase">TUGAS <span class="task-num">${taskCount}</span></label>
+                        <input type="text" 
+                               name="tasks[${index}][title]" 
+                               class="form-control form-control-lg fs-6 border-2" 
+                               placeholder="Apa yang perlu dikerjakan?" 
+                               required>
+                    </div>
+                    <div class="col-12">
+                        <label class="desc-label mb-1 text-uppercase text-muted">Deskripsi (Opsional)</label>
+                        <textarea name="tasks[${index}][description]" 
+                                  class="form-control bg-light" 
+                                  rows="2" 
+                                  placeholder="Tambahkan detail atau instruksi khusus untuk tugas ini..."></textarea>
+                    </div>
+                </div>
             </div>
         `;
         
-        container.appendChild(taskItem);
+        container.insertAdjacentHTML('beforeend', taskHtml);
         updateTaskNumbers();
     }
 
-    function removeTaskItem(btn) {
-        btn.closest('.task-item').remove();
-        updateTaskNumbers();
+    function removeTaskItem(element) {
+        const cards = document.querySelectorAll('.task-card');
+        if (cards.length > 1) {
+            element.closest('.task-card').remove();
+            updateTaskNumbers();
+        } else {
+            alert("Minimal harus ada satu tugas yang dibuat.");
+        }
     }
 
     function updateTaskNumbers() {
-        const items = document.querySelectorAll('.task-item');
-        items.forEach((item, index) => {
-            item.querySelector('.task-item-number').textContent = index + 1;
+        const cards = document.querySelectorAll('.task-card');
+        cards.forEach((card, i) => {
+            // Update Numbering Text
+            card.querySelector('.task-num').textContent = i + 1;
+            
+            // Update Input Names
+            const inputs = card.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    const newName = name.replace(/tasks\[\d+\]/, `tasks[${i}]`);
+                    input.setAttribute('name', newName);
+                }
+            });
         });
     }
 
     document.getElementById('add-task-btn').addEventListener('click', addTaskItem);
 
-    // Add first task item on load
+    // Load first item on start
     document.addEventListener('DOMContentLoaded', function() {
         addTaskItem();
     });

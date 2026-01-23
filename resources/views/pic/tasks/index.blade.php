@@ -10,145 +10,16 @@
             <div class="mb-4">
                 <h2 class="fw-bold mb-2">
                     <i class="fas fa-tasks me-2 text-primary"></i>
-                    Daftar Tugas
+                    Daftar Tugas Saya
                 </h2>
                 <p class="text-muted mb-0">Centang item tugas yang telah selesai dikerjakan</p>
+                <small class="text-muted">
+                    <i class="fas fa-users me-1"></i>
+                    Divisi: {{ auth()->user()->division->name ?? 'Tidak ditentukan' }}
+                </small>
             </div>
 
-            @if ($submissions->count() > 0)
-                @foreach ($submissions as $submission)
-                    <div class="card shadow-sm border-0 mb-4">
-                        <!-- Task Group Header -->
-                        <div class="card-header bg-gradient-primary py-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h5 class="fw-bold mb-2 text-dark">
-                                        <i class="fas fa-briefcase me-2"></i>
-                                        {{ $submission->task->title }}
-                                    </h5>
-                                    <div class="text-muted small">
-                                        <p class="mb-1">
-                                            <i class="fas fa-user me-1"></i>
-                                            Dari: <strong>{{ $submission->task->supervisor->name }}</strong>
-                                        </p>
-                                        @if ($submission->task->description)
-                                            <p class="mb-0">
-                                                <i class="fas fa-align-left me-1"></i>
-                                                {{ $submission->task->description }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    @php
-                                        $childTasks = \App\Models\Task::where('task_group_id', $submission->task->id)->get();
-                                        $progress = $childTasks->count() > 0 ? round(($submission->completed_tasks_count / $childTasks->count()) * 100) : 0;
-                                    @endphp
-                                    <span class="badge bg-primary">{{ $submission->completed_tasks_count }}/{{ $childTasks->count() }} Selesai</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        <div class="card-body pt-3">
-                            @if ($childTasks->count() > 0)
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <small class="text-muted">Progress Penyelesaian</small>
-                                        <small class="fw-bold">{{ $progress }}%</small>
-                                    </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                             role="progressbar" 
-                                             style="width: {{ $progress }}%"
-                                             aria-valuenow="{{ $progress }}" 
-                                             aria-valuemin="0" 
-                                             aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <!-- Task Items List -->
-                            <div class="task-items-list">
-                                @foreach ($childTasks as $task)
-                                    @php
-                                        $isCompleted = $submission->completed_tasks_count > 0 && 
-                                                      \DB::table('completed_tasks')->where([
-                                                          'task_submission_id' => $submission->id,
-                                                          'task_id' => $task->id
-                                                      ])->exists();
-                                    @endphp
-                                    <div class="task-item {{ $isCompleted ? 'completed' : '' }}" data-task-id="{{ $task->id }}" data-submission-id="{{ $submission->id }}">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input task-checkbox" 
-                                                       type="checkbox" 
-                                                       id="task_{{ $task->id }}"
-                                                       data-task-id="{{ $task->id }}"
-                                                       data-task-title="{{ $task->task_item_title }}"
-                                                       {{ $isCompleted ? 'checked' : '' }}
-                                                       {{ ($submission->status === 'approved' || $submission->status === 'completed') ? 'disabled' : '' }}>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <label class="form-check-label mb-0" for="task_{{ $task->id }}">
-                                                    <strong>{{ $task->task_item_title }}</strong>
-                                                </label>
-                                            </div>
-                                            <div class="text-end">
-                                                @if ($isCompleted)
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check me-1"></i>Selesai
-                                                    </span>
-                                                @else
-                                                    <span class="badge bg-secondary">
-                                                        <i class="fas fa-clock me-1"></i>Pending
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <!-- Deadline -->
-                            <div class="mt-4 pt-3 border-top">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <small class="text-muted">
-                                            <i class="fas fa-calendar-alt me-1"></i>
-                                            Deadline: <strong>
-                                                @if ($submission->task->deadline)
-                                                    {{ \Carbon\Carbon::parse($submission->task->deadline)->format('d M Y') }}
-                                                @else
-                                                    Tidak ditentukan
-                                                @endif
-                                            </strong>
-                                        </small>
-                                    </div>
-                                    <div>
-                                        @if ($submission->status === 'pending')
-                                            <span class="badge bg-warning">Status: Pending</span>
-                                        @elseif ($submission->status === 'completed')
-                                            <span class="badge bg-info">Status: Diserahkan</span>
-                                        @elseif ($submission->status === 'approved')
-                                            <span class="badge bg-success">Status: Disetujui</span>
-                                        @elseif ($submission->status === 'rejected')
-                                            <span class="badge bg-danger">Status: Ditolak</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            @if ($submission->feedback)
-                                <div class="alert alert-info mt-3 mb-0">
-                                    <strong>Catatan Supervisor:</strong>
-                                    <p class="mb-0">{{ $submission->feedback }}</p>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            @else
+            @if($tasks->isEmpty())
                 <!-- Empty State -->
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center py-5">
@@ -156,8 +27,161 @@
                             <i class="fas fa-inbox fa-4x text-muted"></i>
                         </div>
                         <h5 class="text-muted mb-2">Belum Ada Tugas</h5>
-                        <p class="text-muted mb-0">Anda belum menerima tugas apapun dari supervisor. Tugas akan muncul di sini ketika supervisor menambahkan tugas untuk Anda.</p>
+                        <p class="text-muted mb-0">Anda belum memiliki tugas yang harus dikerjakan. Tugas akan muncul di sini ketika supervisor menambahkan tugas untuk divisi Anda.</p>
                     </div>
+                </div>
+            @else
+                <div class="list-group shadow-sm">
+                    @foreach ($tasks as $index => $task)
+                        @php
+                            // Ambil child tasks berdasarkan task_group_id
+                            $childTasks = \App\Models\Task::where('task_group_id', $task->id)->get();
+                            
+                            // Ambil submission untuk task ini
+                            $submission = \App\Models\TaskSubmission::where('task_id', $task->id)
+                                ->where('pic_id', auth()->id())
+                                ->first();
+                            
+                            // Hitung tugas yang sudah selesai untuk PIC ini
+                            $completedCount = 0;
+                            if ($submission) {
+                                $completedCount = \DB::table('completed_tasks')
+                                    ->where('task_submission_id', $submission->id)
+                                    ->whereIn('task_id', $childTasks->pluck('id')->toArray())
+                                    ->count();
+                            }
+                        @endphp
+
+                        <div class="list-group-item p-0 mb-3 border rounded overflow-hidden">
+                            <!-- Header Group - Clickable for toggle -->
+                            <button class="d-flex justify-content-between align-items-center p-3 bg-light w-100 border-0 toggle-header"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#taskContent{{ $index }}"
+                                    aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
+                                    aria-controls="taskContent{{ $index }}">
+                                <div class="text-start">
+                                    <h5 class="fw-bold mb-1">
+                                        <i class="fas fa-folder-open text-primary me-2"></i>
+                                        {{ $task->title }}
+                                    </h5>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        Deadline: 
+                                        @if ($task->deadline)
+                                            <strong>{{ \Carbon\Carbon::parse($task->deadline)->format('d M Y') }}</strong>
+                                        @else
+                                            <strong>Tidak ditentukan</strong>
+                                        @endif
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-list-check me-1"></i>
+                                        {{ $childTasks->count() }} item tugas
+                                    </small>
+                                </div>
+                                
+                                <div class="d-flex align-items-center">
+                                    <!-- Status Badge -->
+                                    @if ($submission)
+                                        @if ($submission->status === 'pending')
+                                            <span class="badge bg-warning me-3">Pending</span>
+                                        @elseif ($submission->status === 'completed')
+                                            <span class="badge bg-success me-3">Selesai</span>
+                                        @elseif ($submission->status === 'submitted')
+                                            <span class="badge bg-info me-3">Diserahkan</span>
+                                        @elseif ($submission->status === 'approved')
+                                            <span class="badge bg-success me-3">Disetujui</span>
+                                        @elseif ($submission->status === 'rejected')
+                                            <span class="badge bg-danger me-3">Ditolak</span>
+                                        @else
+                                            <span class="badge bg-secondary me-3">Belum Dikerjakan</span>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-secondary me-3">Belum Dikerjakan</span>
+                                    @endif
+                                    
+                                    <!-- Progress Badge -->
+                                    <span class="badge bg-primary me-2">
+                                        {{ $completedCount }}/{{ $childTasks->count() }} Selesai
+                                    </span>
+                                    
+                                    <!-- Toggle Icon -->
+                                    <i class="fas fa-chevron-down toggle-icon ms-2 transition-icon"></i>
+                                </div>
+                            </button>
+
+                            <!-- Task Items - Collapsible Content -->
+                            <div class="collapse {{ $index === 0 ? 'show' : '' }} task-content" id="taskContent{{ $index }}">
+                                <div class="p-3 pt-0">
+                                    <!-- Task Description -->
+                                    @if($task->description)
+                                        <div class="alert alert-light mb-3">
+                                            <strong><i class="fas fa-align-left me-1"></i>Deskripsi Tugas:</strong>
+                                            <p class="mb-0 mt-1">{{ $task->description }}</p>
+                                        </div>
+                                    @endif
+
+                                    @foreach ($childTasks as $childIndex => $childTask)
+                                        @php
+                                            // Cek apakah tugas ini sudah diselesaikan oleh user
+                                            $isCompleted = false;
+                                            if ($submission) {
+                                                $isCompleted = \DB::table('completed_tasks')
+                                                    ->where('task_submission_id', $submission->id)
+                                                    ->where('task_id', $childTask->id)
+                                                    ->exists();
+                                            }
+                                        @endphp
+
+                                        <div class="d-flex align-items-center mb-2 task-item {{ $isCompleted ? 'task-completed' : '' }}"
+                                             style="padding: 12px; border-radius: 8px; background-color: {{ $isCompleted ? '#e8f5e9' : 'transparent' }};">
+                                            
+                                            <!-- Checkbox on the left -->
+                                            <div class="me-3">
+                                                <input class="form-check-input task-checkbox"
+                                                    type="checkbox"
+                                                    id="task_{{ $childTask->id }}"
+                                                    data-task-id="{{ $childTask->id }}"
+                                                    data-task-title="{{ $childTask->task_item_title }}"
+                                                    data-main-task-id="{{ $task->id }}"
+                                                    {{ $isCompleted ? 'checked disabled' : '' }}
+                                                    style="width: 20px; height: 20px; cursor: {{ $isCompleted ? 'not-allowed' : 'pointer' }};">
+                                            </div>
+                                            
+                                            <!-- Task title -->
+                                            <div class="flex-grow-1">
+                                                <label class="form-check-label {{ $isCompleted ? 'text-decoration-line-through text-muted' : 'fw-medium' }}"
+                                                       for="task_{{ $childTask->id }}"
+                                                       style="cursor: {{ $isCompleted ? 'default' : 'pointer' }}">
+                                                    {{ $childIndex + 1 }}. {{ $childTask->task_item_title }}
+                                                </label>
+                                                
+                                                @if($childTask->description)
+                                                    <small class="text-muted d-block mt-1">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        {{ $childTask->description }}
+                                                    </small>
+                                                @endif
+                                            </div>
+                                            
+                                            <!-- Status badge -->
+                                            <span class="badge {{ $isCompleted ? 'bg-success' : 'bg-secondary' }} ms-2">
+                                                {{ $isCompleted ? 'Selesai' : 'Belum' }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+
+                                    <!-- Feedback from Supervisor -->
+                                    @if ($submission && $submission->feedback)
+                                        <div class="alert alert-info mt-3 mb-0">
+                                            <strong><i class="fas fa-comment-dots me-1"></i>Catatan Supervisor:</strong>
+                                            <p class="mb-0 mt-1">{{ $submission->feedback }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             @endif
         </div>
@@ -176,6 +200,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="completionForm" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" id="modalTaskId" name="task_id">
+                <input type="hidden" id="modalMainTaskId" name="main_task_id">
+                
                 <div class="modal-body">
                     <p id="confirmationMessage" class="mb-3">
                         Apakah Anda yakin ingin menandai tugas <strong id="taskNameDisplay"></strong> sebagai <strong>selesai</strong>?
@@ -200,7 +228,7 @@
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i>Batal
                     </button>
-                    <button type="button" class="btn btn-primary" id="confirmBtn">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-check me-1"></i>Ya, Tandai Selesai
                     </button>
                 </div>
@@ -210,171 +238,248 @@
 </div>
 
 <style>
-    .task-items-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
+.task-item {
+    transition: all 0.2s ease;
+    border: 1px solid #e0e0e0;
+}
 
-    .task-item {
-        padding: 12px 16px;
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
+.task-item:hover {
+    background-color: #f8f9fa !important;
+    border-color: #c5c5c5;
+}
 
-    .task-item:hover {
-        background: #f0f1f3;
-        border-color: #0d6efd;
-    }
+.task-completed {
+    background-color: #e8f5e9 !important;
+}
 
-    .task-item.completed {
-        background: #e8f5e9;
-        border-color: #4caf50;
-    }
+.task-completed label {
+    text-decoration: line-through;
+    color: #6c757d;
+}
 
-    .task-item.completed .form-check-label {
-        color: #999;
-        text-decoration: line-through;
-    }
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
 
-    .task-checkbox {
-        cursor: pointer;
-        width: 20px;
-        height: 20px;
-    }
+.form-check-input:not(:disabled):not(:checked):hover {
+    border-color: #198754;
+}
 
-    .task-checkbox:checked {
-        background-color: #4caf50;
-        border-color: #4caf50;
-    }
+.badge {
+    font-size: 0.85em;
+    padding: 5px 10px;
+}
 
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a5ae8 100%);
-        color: white;
-    }
+.toggle-header {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 
-    .badge {
-        padding: 6px 12px;
-        font-weight: 500;
-        font-size: 12px;
-    }
+.toggle-header:hover {
+    background-color: #e9ecef !important;
+}
 
-    .progress {
-        background-color: #e9ecef;
-        border-radius: 4px;
-    }
+.toggle-header[aria-expanded="true"] .toggle-icon {
+    transform: rotate(180deg);
+}
 
-    .form-check-label {
-        cursor: pointer;
-        font-size: 15px;
-    }
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.task-content {
+    transition: all 0.3s ease;
+}
+
+.list-group-item {
+    border-radius: 10px !important;
+}
+
+/* Animation for expanding/collapsing */
+.collapsing {
+    transition: height 0.3s ease;
+}
+
+/* Make sure the header has proper cursor */
+.toggle-header h5 {
+    cursor: pointer;
+}
+
+/* Progress indicator */
+.progress-bar {
+    transition: width 0.3s ease;
+}
 </style>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-    let selectedTaskId = null;
-
-    // Attach event listeners to all checkboxes
-    function attachCheckboxListeners() {
-        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function(e) {
-                if (this.checked) {
-                    selectedTaskId = this.dataset.taskId;
-                    const taskTitle = this.dataset.taskTitle;
-                    
-                    // Update modal with task name
-                    document.getElementById('taskNameDisplay').textContent = `"${taskTitle}"`;
-                    
-                    // Clear form
-                    document.getElementById('completionForm').reset();
-                    
-                    confirmationModal.show();
-                    this.checked = false; // Reset checkbox sampai dikonfirmasi
-                }
-            });
+    const completionForm = document.getElementById('completionForm');
+    let currentTaskId = null;
+    let currentMainTaskId = null;
+    
+    // Attach event listeners to checkboxes
+    document.querySelectorAll('.task-checkbox:not(:disabled)').forEach(checkbox => {
+        checkbox.addEventListener('change', function(e) {
+            if (this.checked) {
+                const taskId = this.dataset.taskId;
+                const taskTitle = this.dataset.taskTitle;
+                const mainTaskId = this.dataset.mainTaskId;
+                
+                // Store the task ID for later use
+                currentTaskId = taskId;
+                currentMainTaskId = mainTaskId;
+                
+                // Set modal data
+                document.getElementById('modalTaskId').value = taskId;
+                document.getElementById('modalMainTaskId').value = mainTaskId;
+                document.getElementById('taskNameDisplay').textContent = `"${taskTitle}"`;
+                
+                // Reset form
+                completionForm.reset();
+                
+                // Show modal
+                confirmationModal.show();
+                
+                // Uncheck the checkbox (will be checked after successful submission)
+                this.checked = false;
+            }
         });
-    }
-
-    // Initial attach
-    document.addEventListener('DOMContentLoaded', function() {
-        attachCheckboxListeners();
     });
-
-    document.getElementById('confirmBtn').addEventListener('click', async function() {
+    
+    // Handle form submission
+    completionForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Memproses...';
+        submitBtn.disabled = true;
+        
         try {
-            const formData = new FormData();
-            const evidenceFile = document.getElementById('evidenceFile').files[0];
-            const notes = document.getElementById('notes').value;
+            const formData = new FormData(this);
             
-            if (evidenceFile) {
-                formData.append('evidence', evidenceFile);
+            // Get CSRF token safely
+            const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfTokenElement ? csrfTokenElement.getAttribute('content') : document.querySelector('input[name="_token"]')?.value;
+            
+            if (!csrfToken) {
+                showToast('Kesalahan: Token keamanan tidak ditemukan', 'error');
+                return;
             }
-            if (notes) {
-                formData.append('notes', notes);
-            }
-
-            const response = await fetch(`/pic/tasks/${selectedTaskId}/complete`, {
+            
+            const response = await fetch(`/pic/tasks/${currentTaskId}/complete`, {
                 method: 'POST',
+                body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: formData
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                }
             });
-
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                showToast(errorData.message || `Kesalahan: ${response.status}`, 'error');
+                return;
+            }
+            
             const data = await response.json();
-
+            
             if (data.success) {
-                // Update UI - find checkbox by id
-                const checkbox = document.getElementById(`task_${selectedTaskId}`);
-                if (checkbox) {
-                    checkbox.checked = true;
-                    checkbox.closest('.task-item').classList.add('completed');
-                }
-
-                // Update progress bar and badge
-                const card = checkbox.closest('.card');
-                const progressBar = card.querySelector('.progress-bar');
-                const badge = card.querySelector('.badge');
+                // Update UI
+                const checkbox = document.getElementById(`task_${data.task_id}`);
+                const taskItem = checkbox.closest('.task-item');
+                const label = taskItem.querySelector('label');
+                const badge = taskItem.querySelector('.badge');
                 
-                if (progressBar) {
-                    const newProgress = (data.completed_count / data.total_count) * 100;
-                    progressBar.style.width = newProgress + '%';
-                    const progressText = progressBar.parentElement.querySelector('small:last-child');
-                    if (progressText) {
-                        progressText.textContent = Math.round(newProgress) + '%';
-                    }
-                }
+                // Update checkbox
+                checkbox.checked = true;
+                checkbox.disabled = true;
                 
-                if (badge) {
-                    badge.textContent = `${data.completed_count}/${data.total_count} Selesai`;
-                }
-
-                // Show success toast
+                // Update task item styling
+                taskItem.classList.add('task-completed');
+                taskItem.style.backgroundColor = '#e8f5e9';
+                label.classList.add('text-decoration-line-through', 'text-muted');
+                label.classList.remove('fw-medium');
+                
+                // Update badge
+                badge.classList.remove('bg-secondary');
+                badge.classList.add('bg-success');
+                badge.textContent = 'Selesai';
+                
+                // Update progress counter for this main task
+                const mainTaskItem = checkbox.closest('.list-group-item');
+                const progressBadge = mainTaskItem.querySelector('.bg-primary');
+                const currentCount = parseInt(progressBadge.textContent.split('/')[0]);
+                const totalCount = parseInt(progressBadge.textContent.split('/')[1].split(' ')[0]);
+                progressBadge.textContent = `${currentCount + 1}/${totalCount} Selesai`;
+                
+                // Show success message
                 showToast('Tugas berhasil ditandai selesai!', 'success');
                 
+                // Close modal
                 confirmationModal.hide();
             } else {
                 showToast(data.message || 'Gagal menandai tugas selesai', 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            showToast('Terjadi kesalahan saat memproses permintaan', 'error');
+            showToast('Terjadi kesalahan saat memproses permintaan: ' + error.message, 'error');
+        } finally {
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
         }
     });
-
+    
+    // Add click animation to toggle headers
+    document.querySelectorAll('.toggle-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const icon = this.querySelector('.toggle-icon');
+            const targetId = this.getAttribute('data-bs-target');
+            const target = document.querySelector(targetId);
+            
+            if (target.classList.contains('show')) {
+                // Will collapse
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                // Will expand
+                icon.style.transform = 'rotate(180deg)';
+            }
+        });
+    });
+    
+    // Auto-open the first item
+    const firstToggle = document.querySelector('.toggle-header');
+    if (firstToggle) {
+        firstToggle.click();
+    }
+    
     function showToast(message, type) {
-        const toastContainer = document.body;
+        // Create toast element
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed bottom-0 end-0 m-3`;
-        toast.innerHTML = message;
-        toast.style.zIndex = '9999';
-        toastContainer.appendChild(toast);
-
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        `;
+        
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Add to body
+        document.body.appendChild(toast);
+        
+        // Auto remove after 5 seconds
         setTimeout(() => {
             toast.remove();
-        }, 3000);
+        }, 5000);
     }
+});
 </script>
 @endsection

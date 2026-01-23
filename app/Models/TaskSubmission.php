@@ -17,6 +17,9 @@ class TaskSubmission extends Model
         'status',
         'reviewer_feedback',
         'reviewed_at',
+        'completed_tasks_count',
+        'completed_at',
+        'submitted_at',
     ];
 
     protected $casts = [
