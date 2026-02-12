@@ -59,6 +59,9 @@
                                        required
                                        autofocus>
                                 <div class="form-text text-muted">Contoh: Andi Wijaya</div>
+                                @error('name')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-6 mb-4">
@@ -73,6 +76,9 @@
                                        placeholder="nama@perusahaan.com"
                                        required>
                                 <div class="form-text text-muted">Pastikan email valid dan belum terdaftar</div>
+                                @error('email')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
@@ -100,6 +106,9 @@
                                     </div>
                                     <small class="text-muted" id="passwordHint">Kekuatan password</small>
                                 </div>
+                                @error('password')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-6 mb-4">
@@ -111,6 +120,7 @@
                                 <div class="input-group">
                                     <input type="password" 
                                            class="form-control form-control-lg border-1 shadow-sm" 
+                                           name="password_confirmation"
                                            id="confirmPassword"
                                            placeholder="Ulangi password"
                                            required>
@@ -119,6 +129,9 @@
                                     </button>
                                 </div>
                                 <div class="form-text text-muted" id="passwordMatchText"></div>
+                                @error('password')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
 
@@ -137,6 +150,9 @@
                                 <div class="form-text text-muted" id="roleDescription">
                                     Person In Charge - Bertanggung jawab pada tugas divisi
                                 </div>
+                                @error('role')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
                             </div>
 
                  <!-- Kolom Divisi - Hapus seluruh kode PHP yang ada dan ganti dengan ini -->

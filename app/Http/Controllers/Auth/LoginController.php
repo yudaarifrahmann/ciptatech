@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Activitylog\Models\Activity;
 
 class LoginController extends Controller
 {
@@ -31,6 +32,15 @@ public function authenticate(Request $request)
     /** @var \App\Models\User $user */
     $user = Auth::user();
 
+    // Log login activity
+    activity()
+        ->causedBy($user)
+        ->withProperties([
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ])
+        ->log('Login');
+
     return match ($user->role) {
         'superadmin' => redirect()->intended('/superadmin'),
         'supervisor' => redirect()->intended('/supervisor'),
@@ -41,6 +51,19 @@ public function authenticate(Request $request)
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
+        // Log logout activity
+        if ($user) {
+            activity()
+                ->causedBy($user)
+                ->withProperties([
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ])
+                ->log('Logout');
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

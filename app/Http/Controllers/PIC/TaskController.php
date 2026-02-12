@@ -218,6 +218,12 @@ class TaskController extends Controller
                     $files[] = $evidencePath;
                     $submission->update(['submission_file' => implode('|', $files)]);
                 }
+                
+                // Handle GitHub link for Software Host division (division_id = 3)
+                $githubLink = $request->input('github_link');
+                if ($githubLink && $user->division_id == 3) {
+                    $submission->update(['github_link' => $githubLink]);
+                }
             }
 
             // Check if all tasks are completed

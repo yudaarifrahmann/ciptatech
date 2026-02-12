@@ -25,6 +25,25 @@ class Task extends Model
         'deadline' => 'date',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    // Parent Task (child → parent)
+    public function parent()
+    {
+        return $this->belongsTo(Task::class, 'task_group_id');
+    }
+
+    // Child Tasks (parent → children) ✅ REVERSE RELATION
+    public function children()
+    {
+        return $this->hasMany(Task::class, 'task_group_id')
+                    ->orderBy('task_order');
+    }
+
     public function division()
     {
         return $this->belongsTo(Division::class);
@@ -40,8 +59,9 @@ class Task extends Model
         return $this->hasMany(TaskSubmission::class);
     }
 
-    public function getLatestSubmission()
+    // Latest submission (clean & optimal)
+    public function latestSubmission()
     {
-        return $this->submissions()->latest()->first();
+        return $this->hasOne(TaskSubmission::class)->latestOfMany();
     }
 }

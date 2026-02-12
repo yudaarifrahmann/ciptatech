@@ -72,6 +72,26 @@
             <div class="form-text text-muted">Deskripsikan task dengan jelas dan detail</div>
         </div>
 
+        <!-- GITHUB LINK (HANYA UNTUK DIVISI SOFTWARE HOST) -->
+        @if(auth()->user()->division_id == 3)
+        <div class="mb-4">
+            <label class="form-label fw-bold">
+                <i class="fab fa-github me-1 text-dark"></i>
+                Link Repository GitHub
+                <span class="badge bg-info ms-2">Software Host</span>
+                <span class="text-muted fw-normal">(Opsional)</span>
+            </label>
+            <input type="url" name="github_link" class="form-control" 
+                   id="githubLinkDaily"
+                   placeholder="https://github.com/username/repository"
+                   pattern="https://.*github\.com/.*">
+            <small class="text-muted d-block mt-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Sertakan link repository GitHub jika ada kode yang di-push atau di-update
+            </small>
+        </div>
+        @endif
+
         <!-- DOKUMENTASI -->
         <div class="mb-4">
             <label class="form-label fw-bold">
@@ -88,6 +108,39 @@
             </div>
         </div>
 
+        <!-- VIDEO UPLOAD (HANYA UNTUK DIVISI MULTIMEDIA) -->
+        @if(auth()->user()->division_id == 1)
+        <div class="mb-4">
+            <label class="form-label fw-bold">
+                <i class="fas fa-video me-1 text-success"></i>
+                Video Dokumentasi
+                <span class="badge bg-success ms-2">Multimedia</span>
+            </label>
+            <input type="file" name="video" class="form-control" 
+                   accept="video/*" id="videoInput">
+            <small class="text-muted d-block mt-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Upload video (MP4, MOV, AVI, MKV - tanpa batasan ukuran)
+            </small>
+            
+            <!-- Preview video -->
+            <div id="videoPreview" class="mt-2" style="display: none;">
+                <video id="previewVideo" class="rounded" style="max-width: 100%; max-height: 200px; background: #000;">
+                    Browser Anda tidak mendukung HTML5 video
+                </video>
+            </div>
+            
+            <!-- Info video yang dipilih -->
+            <div id="videoInfo" class="mt-2 alert alert-info" style="display: none;">
+                <small>
+                    <i class="fas fa-check-circle me-1"></i>
+                    <span id="videoFileName"></span> - 
+                    <span id="videoFileSize"></span>
+                </small>
+            </div>
+        </div>
+        @endif
+
         <button type="submit" class="btn btn-primary btn-lg w-100">
             <i class="fas fa-paper-plane me-2"></i>
             Kirim Daily Report
@@ -95,51 +148,147 @@
     </form>
 </div>
 
-<!-- JavaScript untuk preview gambar -->
+<!-- JavaScript untuk preview gambar dan video -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('documentationInput');
     const imagePreview = document.getElementById('imagePreview');
     const previewImage = document.getElementById('previewImage');
     
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
-            
-            // Validasi tipe file
-            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            
-            if (!validTypes.includes(file.type)) {
-                alert('Hanya file gambar (jpg, png, gif) yang diizinkan!');
-                this.value = '';
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Validasi tipe file
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                
+                if (!validTypes.includes(file.type)) {
+                    alert('Hanya file gambar (jpg, png, gif) yang diizinkan!');
+                    this.value = '';
+                    imagePreview.style.display = 'none';
+                    return;
+                }
+                
+                // Validasi ukuran file (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Ukuran file maksimal 2MB!');
+                    this.value = '';
+                    imagePreview.style.display = 'none';
+                    return;
+                }
+                
+                // Preview gambar
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
                 imagePreview.style.display = 'none';
-                return;
             }
-            
-            // Validasi ukuran file (2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran file maksimal 2MB!');
-                this.value = '';
-                imagePreview.style.display = 'none';
-                return;
+        });
+    }
+    
+    // Video preview handler (hanya untuk divisi Multimedia)
+    const videoInput = document.getElementById('videoInput');
+    const videoPreview = document.getElementById('videoPreview');
+    const previewVideo = document.getElementById('previewVideo');
+    const videoInfo = document.getElementById('videoInfo');
+    const videoFileName = document.getElementById('videoFileName');
+    const videoFileSize = document.getElementById('videoFileSize');
+    
+    if (videoInput) {
+        videoInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Validasi tipe file video
+                const validVideoTypes = [
+                    'video/mp4',
+                    'video/mpeg',
+                    'video/quicktime',
+                    'video/x-msvideo',
+                    'video/x-matroska'
+                ];
+                
+                if (!validVideoTypes.includes(file.type)) {
+                    alert('Hanya file video (MP4, MOV, AVI, MKV) yang diizinkan!');
+                    this.value = '';
+                    videoPreview.style.display = 'none';
+                    videoInfo.style.display = 'none';
+                    return;
+                }
+                
+                // Tampilkan info video
+                videoFileName.textContent = file.name;
+                videoFileSize.textContent = formatFileSize(file.size);
+                videoInfo.style.display = 'block';
+                
+                // Preview video
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewVideo.src = e.target.result;
+                    videoPreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                videoPreview.style.display = 'none';
+                videoInfo.style.display = 'none';
             }
-            
-            // Preview gambar
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                imagePreview.style.display = 'block';
-            }
-            reader.readAsDataURL(file);
-        } else {
-            imagePreview.style.display = 'none';
-        }
-    });
+        });
+    }
+    
+    // Function untuk format ukuran file
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
 });
+</script>
 
-// Tambahkan CSS untuk tampilan yang lebih baik
-const style = document.createElement('style');
-style.textContent = `
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .alert-success {
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+        color: #0f5132;
+        border-radius: 8px;
+        padding: 12px 16px;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+    
+    .input-group {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
     h4 {
         color: #2c3e50;
         font-weight: 600;
@@ -183,54 +332,36 @@ style.textContent = `
         border: 1px solid #ced4da;
     }
     
-    .form-control:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
     #previewImage {
         max-width: 100%;
         border-radius: 8px;
         margin-top: 10px;
     }
-`;
-document.head.appendChild(style);
-</script>
-
-<style>
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
     
-    .alert-success {
-        background-color: #d1e7dd;
-        border-color: #badbcc;
-        color: #0f5132;
+    /* Video Upload Styling */
+    #videoPreview video {
+        background: #000;
+        width: 100%;
         border-radius: 8px;
-        padding: 12px 16px;
     }
     
-    .form-control, .form-select {
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        font-weight: 500;
+    }
+    
+    .alert-info {
+        background-color: #cfe2ff;
+        border-color: #b6d4fe;
+        color: #084298;
         border-radius: 8px;
-        padding: 10px 15px;
-        border: 1px solid #ddd;
-        transition: all 0.3s ease;
+        padding: 10px 12px;
     }
     
-    .form-control:focus, .form-select:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-    }
-    
-    textarea.form-control {
-        resize: vertical;
-        min-height: 120px;
-    }
-    
-    .input-group {
-        border-radius: 8px;
-        overflow: hidden;
+    .alert-info small {
+        display: flex;
+        align-items: center;
     }
     
     @media (max-width: 768px) {

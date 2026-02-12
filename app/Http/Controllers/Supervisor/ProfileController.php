@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Pic;
+namespace App\Http\Controllers\Supervisor;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class ProfileController extends Controller
             ->limit(10)
             ->get();
 
-        return view('pic.profile', compact('user', 'activities'));
+        return view('supervisor.profile', compact('user', 'activities'));
     }
 
     public function update(Request $request)

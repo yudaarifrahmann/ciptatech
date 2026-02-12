@@ -20,6 +20,7 @@ class TaskSubmission extends Model
         'completed_tasks_count',
         'completed_at',
         'submitted_at',
+        'github_link',
     ];
 
     protected $casts = [

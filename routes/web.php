@@ -17,12 +17,14 @@ use App\Http\Controllers\Supervisor\MonitoringController;
 use App\Http\Controllers\Supervisor\ReportController as SupervisorReportController;
 use App\Http\Controllers\Supervisor\UserController;
 use App\Http\Controllers\Supervisor\TaskController as SupervisorTaskController;
+use App\Http\Controllers\Supervisor\ProfileController as SupervisorProfileController;
 
 // Superadmin
 use App\Http\Controllers\Superadmin\DivisionController;
 use App\Http\Controllers\Superadmin\MonitoringController as SuperadminMonitoringController;
 use App\Http\Controllers\Superadmin\UserController as SuperadminUserController;
 use App\Http\Controllers\Superadmin\DashboardController as SuperadminDashboardController;
+use App\Http\Controllers\Superadmin\ProfileController as SuperadminProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,6 +81,9 @@ Route::middleware(['auth', 'role:PIC'])
         Route::put('/profile/password', [ProfileController::class, 'changePassword'])
             ->name('profile.password');
 
+        Route::get('/profile/login-activity', [ProfileController::class, 'loginActivity'])
+            ->name('profile.loginActivity');
+
         Route::post('/profile/2fa', [ProfileController::class, 'toggle2FA'])
             ->name('profile.2fa');
 
@@ -108,6 +113,16 @@ Route::middleware(['auth', 'role:PIC'])
 
         Route::get('/tasks/progress/stats', [PicTaskController::class, 'getSubmissionProgress'])
             ->name('tasks.progress');
+
+        // NOTIFICATIONS
+        Route::get('/notifications', [\App\Http\Controllers\PIC\NotificationController::class, 'index'])
+            ->name('notifications.index');
+
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\PIC\NotificationController::class, 'markAsRead'])
+            ->name('notifications.read');
+
+        Route::post('/notifications/read-all', [\App\Http\Controllers\PIC\NotificationController::class, 'markAllRead'])
+            ->name('notifications.readAll');
     });
 
 /*
@@ -122,6 +137,22 @@ Route::middleware(['auth', 'role:supervisor'])
 
         Route::get('/', [SupervisorDashboardController::class, 'index'])
             ->name('dashboard');
+
+        // PROFILE
+        Route::get('/profile', [SupervisorProfileController::class, 'index'])
+            ->name('profile');
+
+        Route::put('/profile', [SupervisorProfileController::class, 'update'])
+            ->name('profile.update');
+
+        Route::put('/profile/password', [SupervisorProfileController::class, 'changePassword'])
+            ->name('profile.password');
+
+        Route::get('/profile/login-activity', [SupervisorProfileController::class, 'loginActivity'])
+            ->name('profile.loginActivity');
+
+        Route::post('/profile/2fa', [SupervisorProfileController::class, 'toggle2FA'])
+            ->name('profile.2fa');
 
         Route::get('/monitoring', [MonitoringController::class, 'index'])
             ->name('monitoring');
@@ -193,6 +224,16 @@ Route::middleware(['auth', 'role:supervisor'])
 
         Route::post('/submissions/{submission}/reject', [SupervisorTaskController::class, 'rejectSubmission'])
             ->name('submissions.reject');
+
+        // NOTIFICATIONS
+        Route::get('/notifications', [\App\Http\Controllers\Supervisor\NotificationController::class, 'index'])
+            ->name('notifications.index');
+
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Supervisor\NotificationController::class, 'markAsRead'])
+            ->name('notifications.read');
+
+        Route::post('/notifications/read-all', [\App\Http\Controllers\Supervisor\NotificationController::class, 'markAllRead'])
+            ->name('notifications.readAll');
     });
 
 
@@ -209,7 +250,44 @@ Route::middleware(['auth', 'role:superadmin'])
         Route::get('/', [SuperadminDashboardController::class, 'index'])
             ->name('dashboard');
 
+        // NOTIFICATIONS
+        Route::get('/notifications', [\App\Http\Controllers\Superadmin\NotificationController::class, 'index'])
+            ->name('notifications.index');
+
+        Route::post('/notifications', [\App\Http\Controllers\Superadmin\NotificationController::class, 'store'])
+            ->name('notifications.store');
+
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Superadmin\NotificationController::class, 'markAsRead'])
+            ->name('notifications.read');
+
+        Route::post('/notifications/read-all', [\App\Http\Controllers\Superadmin\NotificationController::class, 'markAllRead'])
+            ->name('notifications.readAll');
+
+        // PROFILE
+        Route::get('/profile', [SuperadminProfileController::class, 'index'])
+            ->name('profile');
+
+        Route::put('/profile', [SuperadminProfileController::class, 'update'])
+            ->name('profile.update');
+
+        Route::put('/profile/password', [SuperadminProfileController::class, 'changePassword'])
+            ->name('profile.password');
+
+        Route::get('/profile/login-activity', [SuperadminProfileController::class, 'loginActivity'])
+            ->name('profile.loginActivity');
+
+        Route::post('/profile/2fa', [SuperadminProfileController::class, 'toggle2FA'])
+            ->name('profile.2fa');
+
         Route::resource('users', SuperadminUserController::class);
+        
+        // Additional user routes
+        Route::post('/users/{user}/reset-password', [SuperadminUserController::class, 'resetPassword'])
+            ->name('users.reset-password');
+        
+        Route::patch('/users/{user}/toggle-status', [SuperadminUserController::class, 'toggleStatus'])
+            ->name('users.toggle-status');
+        
         Route::resource('divisions', DivisionController::class);
 
         Route::get('/monitoring', [SuperadminMonitoringController::class, 'index'])

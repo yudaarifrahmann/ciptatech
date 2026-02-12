@@ -18,6 +18,8 @@ class TaskReport extends Model
         'description',
         'progress',
         'file_path',
+        'video',
+        'github_link',
         'status',
         'feedback',
         'revision_note',

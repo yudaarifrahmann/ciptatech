@@ -22,6 +22,10 @@ class User extends Authenticatable
     'name',
     'email',
     'password',
+    'role',
+    'division_id',
+    'is_active',
+    'avatar',
 ];
 
 
@@ -37,7 +41,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Get the attributes that should be cast. 
      *
      * @return array<string, string>
      */

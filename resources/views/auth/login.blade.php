@@ -131,12 +131,12 @@
 
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="email@example.com" required autofocus>
+                            <input type="email" name="email" class="form-control" placeholder="Masukkan email Anda" required autofocus>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small fw-semibold">Password</label>
-                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                            <input type="password" name="password" class="form-control" placeholder="Masukkan password Anda" required>
                         </div>
 
                         <div class="form-check mb-4">

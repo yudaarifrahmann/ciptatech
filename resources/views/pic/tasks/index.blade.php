@@ -223,6 +223,24 @@
                         </label>
                         <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Tuliskan catatan tentang penyelesaian tugas..."></textarea>
                     </div>
+                    
+                    <!-- GitHub Link Input (Only for Software Host/Division 3) -->
+                    @if(auth()->user()->division_id == 3)
+                    <div class="mb-3">
+                        <label for="githubLink" class="form-label fw-bold">
+                            <i class="fab fa-github me-1 text-dark"></i>Link Repository GitHub
+                            <span class="badge bg-info ms-2">Software Host</span>
+                            <span class="text-muted fw-normal">(Opsional)</span>
+                        </label>
+                        <input type="url" class="form-control" id="githubLink" name="github_link" 
+                               placeholder="https://github.com/username/repository"
+                               pattern="https://.*github\.com/.*">
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Sertakan link repository GitHub jika ada kode yang di-push
+                        </small>
+                    </div>
+                    @endif
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">

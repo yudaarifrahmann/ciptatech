@@ -552,7 +552,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
-            <form method="POST" action="{{ route('pic.profile.update') }}">
+            <form method="POST" action="{{ route('supervisor.profile.update') }}">
                 @csrf
                 @method('PUT')
 
@@ -597,7 +597,7 @@
 <div class="modal fade" id="changePasswordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <form method="POST" action="{{ route('pic.profile.password') }}" id="changePasswordForm">
+            <form method="POST" action="{{ route('supervisor.profile.password') }}" id="changePasswordForm">
                 @csrf
                 @method('PUT')
 
@@ -769,7 +769,7 @@
             const container = document.getElementById('loginActivityList');
             container.innerHTML = '<div class="text-center text-muted py-4">Memuat aktivitas...</div>';
 
-            fetch("{{ route('pic.profile.loginActivity') }}")
+            fetch("{{ route('supervisor.profile.loginActivity') }}")
                 .then(res => res.json())
                 .then(data => {
                     if (!data || data.length === 0) {

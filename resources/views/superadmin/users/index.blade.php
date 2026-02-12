@@ -676,62 +676,28 @@
         const deleteForm = document.getElementById('deleteForm');
         if (deleteForm) {
             deleteForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
                 // Show loading
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalHtml = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menghapus...';
                 submitBtn.disabled = true;
                 
-                // Simulate API call (remove this in production)
-                setTimeout(() => {
-                    // Reset button
-                    submitBtn.innerHTML = originalHtml;
-                    submitBtn.disabled = false;
-                    
-                    // Close modal
-                    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-                    deleteModal.hide();
-                    
-                    // Show success message
-                    showToast('User berhasil dihapus', 'success');
-                    
-                    // Remove row from table
-                    const userId = this.action.split('/').pop();
-                    const row = document.querySelector(`tr[data-user-id="${userId}"]`);
-                    if (row) {
-                        row.remove();
-                        updateUserCount();
-                    }
-                }, 1500);
+                // Allow form to submit to backend
+                // Form will redirect on success
             });
         }
         
         const resetPasswordForm = document.getElementById('resetPasswordForm');
         if (resetPasswordForm) {
             resetPasswordForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
                 // Show loading
                 const submitBtn = this.querySelector('button[type="submit"]');
                 const originalHtml = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
                 submitBtn.disabled = true;
                 
-                // Simulate API call (remove this in production)
-                setTimeout(() => {
-                    // Reset button
-                    submitBtn.innerHTML = originalHtml;
-                    submitBtn.disabled = false;
-                    
-                    // Close modal
-                    const resetModal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
-                    resetModal.hide();
-                    
-                    // Show success message
-                    showToast('Password berhasil direset dan dikirim ke email user', 'success');
-                }, 1500);
+                // Allow form to submit to backend
+                // Form will redirect on success
             });
         }
     });
@@ -745,12 +711,12 @@
         // Set modal text
         deleteModalText.textContent = `Apakah Anda yakin ingin menghapus user "${userName}" (${userRole})?`;
         
-        // Set form action
-        deleteForm.action = `/superadmin/users/${userId}`;
+        // Set form action with proper route
+        deleteForm.action = `{{ route('superadmin.users.index') }}/${userId}`;
         
         deleteModal.show();
     }
-    l
+
     function showResetPasswordModal(userId, userName) {
         const resetModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
         const resetForm = document.getElementById('resetPasswordForm');
@@ -758,7 +724,8 @@
         
         resetModalText.textContent = `Reset password untuk user "${userName}"? Password baru akan dikirim ke email user.`;
         
-        resetForm.action = `/superadmin/users/${userId}/reset-password`;
+        // Set form action - using a proper endpoint
+        resetForm.action = `{{ route('superadmin.users.index') }}/${userId}/reset-password`;
         
         resetModal.show();
     }
@@ -768,38 +735,31 @@
         const confirmText = `Apakah Anda yakin ingin ${action} user "${userName}"?`;
         
         if (confirm(confirmText)) {
+            // Create and submit a hidden form to toggle status
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{{ route('superadmin.users.index') }}/${userId}/toggle-status`;
+            form.style.display = 'none';
             
-            showToast(`User ${userName} berhasil ${action}`, 'success');
-            
-            const row = document.querySelector(`tr[data-user-id="${userId}"]`);
-            if (row) {
-                const statusBadge = row.querySelector('td:nth-child(5) .badge');
-                const toggleBtn = row.querySelector('td:nth-child(6) .btn-group .btn:nth-child(3)');
-                
-                if (isActive) {
-                    
-                    statusBadge.className = 'badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill';
-                    statusBadge.innerHTML = '<i class="fas fa-circle fa-xs me-1"></i>Nonaktif';
-                    
-                    toggleBtn.className = 'btn btn-outline-success btn-sm';
-                    toggleBtn.innerHTML = '<i class="fas fa-user-check"></i>';
-                    toggleBtn.title = 'Aktifkan';
-                } else {
-                    
-                    statusBadge.className = 'badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill';
-                    statusBadge.innerHTML = '<i class="fas fa-circle fa-xs me-1"></i>Aktif';
-                    
-                    toggleBtn.className = 'btn btn-outline-warning btn-sm';
-                    toggleBtn.innerHTML = '<i class="fas fa-user-slash"></i>';
-                    toggleBtn.title = 'Nonaktifkan';
-                }
-                
-                const tooltip = bootstrap.Tooltip.getInstance(toggleBtn);
-                if (tooltip) {
-                    tooltip.dispose();
-                    new bootstrap.Tooltip(toggleBtn);
-                }
+            // Add CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = '_token';
+                input.value = csrfToken.getAttribute('content');
+                form.appendChild(input);
             }
+            
+            // Add PATCH method
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'PATCH';
+            form.appendChild(methodInput);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
     }
     

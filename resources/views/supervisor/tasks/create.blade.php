@@ -20,7 +20,7 @@
                         <i class="fas fa-calendar-alt me-1 text-primary"></i> Tenggat Waktu
                     </label>
                     <input type="date" class="form-control @error('deadline') is-invalid @enderror" 
-                           id="deadline" name="deadline" form="task-form" value="{{ old('deadline') }}" required>
+                           id="deadline" name="deadline" form="task-form" value="{{ old('deadline') }}">
                     @error('deadline')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

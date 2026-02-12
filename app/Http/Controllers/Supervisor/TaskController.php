@@ -11,117 +11,162 @@ use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | LIST TASK GROUP
+    |--------------------------------------------------------------------------
+    */
     public function index()
     {
         $supervisor = Auth::user();
-        
-        // Get only parent tasks (task_group_id is null) created by this supervisor
+
         $tasks = Task::where('supervisor_id', $supervisor->id)
-            ->where('task_group_id', null) // Only parent tasks
-            ->with('division', 'submissions')
+            ->whereNull('task_group_id') // parent only
+            ->with(['division', 'children', 'latestSubmission'])
             ->latest()
             ->paginate(10);
 
         return view('supervisor.tasks.index', compact('tasks'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE
+    |--------------------------------------------------------------------------
+    */
     public function create()
     {
         $supervisor = Auth::user();
         $division = $supervisor->division;
 
         if (!$division) {
-            return redirect()->route('supervisor.tasks.index')
+            return redirect()
+                ->route('supervisor.tasks.index')
                 ->with('error', 'Anda belum ditugaskan ke divisi manapun');
         }
 
-        $pics = User::where('division_id', $division->id)
-            ->where('role', 'PIC')
-            ->where('is_active', true)
-            ->get();
-
-        return view('supervisor.tasks.create', compact('division', 'pics'));
+        return view('supervisor.tasks.create', compact('division'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | STORE (MULTI TASK)
+    |--------------------------------------------------------------------------
+    */
     public function store(Request $request)
     {
         $supervisor = Auth::user();
         $division = $supervisor->division;
 
         if (!$division) {
-            return redirect()->route('supervisor.tasks.index')
+            return redirect()
+                ->route('supervisor.tasks.index')
                 ->with('error', 'Anda belum ditugaskan ke divisi manapun');
         }
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'deadline' => 'required|date|after_or_equal:today',
+            'tasks' => 'required|array|min:1',
+            'tasks.*.title' => 'required|string|max:255',
+            'tasks.*.description' => 'nullable|string',
         ]);
 
-        // Create parent task (task group)
+        /*
+        |--------------------------------------------------
+        | 1️⃣ CREATE PARENT TASK (GROUP)
+        |--------------------------------------------------
+        */
         $taskGroup = Task::create([
-            'division_id' => $division->id,
+            'division_id'   => $division->id,
             'supervisor_id' => $supervisor->id,
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'deadline' => $validated['deadline'],
-            'status' => 'pending',
-            'task_group_id' => null, 
+            'title'         => 'Tugas Divisi ' . $division->name,
+            'description'   => 'Kumpulan tugas',
+            'deadline'      => $validated['deadline'],
+            'status'        => 'assigned',
+            'task_group_id' => null,
         ]);
 
-        // Auto-assign ke semua PIC
+        /*
+        |--------------------------------------------------
+        | 2️⃣ CREATE CHILD TASKS
+        |--------------------------------------------------
+        */
+        foreach ($validated['tasks'] as $index => $item) {
+            Task::create([
+                'division_id'     => $division->id,
+                'supervisor_id'   => $supervisor->id,
+                'title'           => $item['title'],
+                'task_item_title' => $item['title'],
+                'description'     => $item['description'] ?? null,
+                'deadline'        => $validated['deadline'],
+                'status'          => 'assigned',
+                'task_group_id'   => $taskGroup->id,
+                'task_order'      => $index + 1,
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------
+        | 3️⃣ ASSIGN KE SEMUA PIC
+        |--------------------------------------------------
+        */
         $pics = User::where('division_id', $division->id)
             ->where('role', 'PIC')
             ->where('is_active', true)
-            ->pluck('id');
+            ->get();
 
-        foreach ($pics as $pic_id) {
+        foreach ($pics as $pic) {
             TaskSubmission::create([
                 'task_id' => $taskGroup->id,
-                'pic_id' => $pic_id,
-                'status' => 'submitted',
+                'pic_id'  => $pic->id,
+                'status'  => 'submitted',
                 'completed_tasks_count' => 0,
             ]);
         }
 
-        $taskGroup->update(['status' => 'assigned']);
-
-        return redirect()->route('supervisor.tasks.index')
-            ->with('success', "Tugas '{$validated['title']}' berhasil dibuat untuk divisi {$division->name}");
+        return redirect()
+            ->route('supervisor.tasks.index')
+            ->with('success', 'Tugas berhasil dibuat dan ditugaskan.');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | SHOW
+    |--------------------------------------------------------------------------
+    */
     public function show(Task $task)
     {
-        $supervisor = Auth::user();
+        $this->authorizeSupervisor($task);
 
-        if ($task->supervisor_id !== $supervisor->id) {
-            abort(403, 'Unauthorized');
-        }
-
-        $task->load('division', 'supervisor', 'submissions.pic');
+        $task->load([
+            'division',
+            'children',
+            'submissions.pic',
+        ]);
 
         return view('supervisor.tasks.show', compact('task'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | EDIT
+    |--------------------------------------------------------------------------
+    */
     public function edit(Task $task)
     {
-        $supervisor = Auth::user();
-
-        if ($task->supervisor_id !== $supervisor->id) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorizeSupervisor($task);
 
         return view('supervisor.tasks.edit', compact('task'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE
+    |--------------------------------------------------------------------------
+    */
     public function update(Request $request, Task $task)
     {
-        $supervisor = Auth::user();
-
-        if ($task->supervisor_id !== $supervisor->id) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorizeSupervisor($task);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -131,68 +176,80 @@ class TaskController extends Controller
 
         $task->update($validated);
 
-        return redirect()->route('supervisor.tasks.show', $task)
+        return redirect()
+            ->route('supervisor.tasks.show', $task)
             ->with('success', 'Tugas berhasil diperbarui');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE
+    |--------------------------------------------------------------------------
+    */
     public function destroy(Task $task)
     {
-        $supervisor = Auth::user();
+        $this->authorizeSupervisor($task);
 
-        if ($task->supervisor_id !== $supervisor->id) {
-            abort(403, 'Unauthorized');
-        }
-
-        $taskTitle = $task->title;
+        $task->children()->delete();
+        $task->submissions()->delete();
         $task->delete();
 
-        return redirect()->route('supervisor.tasks.index')
-            ->with('success', "Tugas '{$taskTitle}' telah dihapus");
+        return redirect()
+            ->route('supervisor.tasks.index')
+            ->with('success', 'Tugas berhasil dihapus');
     }
 
-    // Review submissions from PIC
+    /*
+    |--------------------------------------------------------------------------
+    | REVIEW SUBMISSIONS
+    |--------------------------------------------------------------------------
+    */
     public function reviewSubmissions(Task $task)
     {
-        $supervisor = Auth::user();
-
-        if ($task->supervisor_id !== $supervisor->id) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorizeSupervisor($task);
 
         $task->load('submissions.pic');
-        $submissions = $task->submissions;
 
-        return view('supervisor.tasks.review-submissions', compact('task', 'submissions'));
+        return view(
+            'supervisor.tasks.review-submissions',
+            ['task' => $task, 'submissions' => $task->submissions]
+        );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | APPROVE
+    |--------------------------------------------------------------------------
+    */
     public function approveSubmission(TaskSubmission $submission)
     {
-        $supervisor = Auth::user();
         $task = $submission->task;
-
-        if ($task->supervisor_id !== $supervisor->id) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorizeSupervisor($task);
 
         $submission->update([
             'status' => 'approved',
             'reviewed_at' => now(),
         ]);
 
-        $task->update(['status' => 'approved']);
+        $task->update([
+            'status' => 'approved',
+        ]);
 
-        return redirect()->back()
-            ->with('success', "Submission dari {$submission->pic->name} berhasil disetujui. Tugas selesai!");
+        return back()->with(
+            'success',
+            "Submission {$submission->pic->name} disetujui."
+        );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | REJECT
+    |--------------------------------------------------------------------------
+    */
     public function rejectSubmission(Request $request, TaskSubmission $submission)
     {
-        $supervisor = Auth::user();
         $task = $submission->task;
-
-        if ($task->supervisor_id !== $supervisor->id) {
-            abort(403, 'Unauthorized');
-        }
+        $this->authorizeSupervisor($task);
 
         $validated = $request->validate([
             'reviewer_feedback' => 'required|string|min:10',
@@ -204,9 +261,25 @@ class TaskController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        $task->update(['status' => 'submitted']);
+        $task->update([
+            'status' => 'submitted',
+        ]);
 
-        return redirect()->back()
-            ->with('success', "Submission dari {$submission->pic->name} telah ditolak. PIC dapat memperbaiki kembali.");
+        return back()->with(
+            'success',
+            "Submission {$submission->pic->name} ditolak."
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTH CHECK
+    |--------------------------------------------------------------------------
+    */
+    private function authorizeSupervisor(Task $task)
+    {
+        if ($task->supervisor_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
     }
 }

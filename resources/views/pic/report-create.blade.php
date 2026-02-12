@@ -131,6 +131,28 @@
                             </div>
                         </div>
 
+                        <!-- GITHUB LINK (HANYA UNTUK DIVISI SOFTWARE HOST) -->
+                        @if(auth()->user()->division_id == 3)
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-2">
+                                <i class="fab fa-github me-1 text-dark"></i>
+                                Link Repository GitHub
+                                <span class="badge bg-info ms-2">Software Host</span>
+                                <span class="text-muted fw-normal">(Opsional)</span>
+                            </label>
+                            <input type="url" 
+                                   name="github_link" 
+                                   class="form-control form-control-lg border-1 shadow-sm" 
+                                   id="githubLinkReport"
+                                   placeholder="https://github.com/username/repository"
+                                   pattern="https://.*github\.com/.*">
+                            <div class="form-text text-muted mt-1">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Sertakan link repository GitHub jika ada kode yang di-push atau di-update
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="mb-4">
                             <label class="form-label fw-bold mb-2">
                                 <i class="fas fa-paperclip me-1 text-primary"></i>
@@ -174,6 +196,58 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- VIDEO UPLOAD (HANYA UNTUK DIVISI MULTIMEDIA) -->
+                        @if(auth()->user()->division_id == 1)
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-2">
+                                <i class="fas fa-video me-1 text-success"></i>
+                                Upload Video
+                                <span class="badge bg-success ms-2">Multimedia</span>
+                                <span class="text-muted fw-normal">(Opsional)</span>
+                            </label>
+                            
+                            <div class="file-upload-area border-2 border-dashed rounded-3 p-4 text-center">
+                                <div class="upload-icon mb-3">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-success opacity-50"></i>
+                                </div>
+                                <h5 class="mb-2">Drop video di sini atau klik untuk upload</h5>
+                                <p class="text-muted mb-3">Mp4, MOV, AVI, MKV - Tanpa batasan ukuran</p>
+                                
+                                <div class="input-group mb-3">
+                                    <input type="file" 
+                                           name="video" 
+                                           class="form-control" 
+                                           id="videoInput"
+                                           accept="video/*">
+                                    <button class="btn btn-outline-success" type="button" onclick="document.getElementById('videoInput').click()">
+                                        <i class="fas fa-folder-open me-1"></i>Browse
+                                    </button>
+                                </div>
+                                
+                                <div class="video-preview mt-3" id="videoPreview" style="display: none;">
+                                    <div class="alert alert-success d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-check-circle me-2"></i>
+                                            <div>
+                                                <div id="videoFileName" class="fw-bold mb-1"></div>
+                                                <small id="videoFileSize" class="text-muted"></small>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close" onclick="clearVideo()"></button>
+                                    </div>
+                                </div>
+                                
+                                <div class="supported-files mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Format yang didukung: MP4, MOV, AVI, MKV
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
 
                         <div class="d-flex justify-content-between mt-5 pt-3 border-top">
                             <a href="/pic/dashboard" class="btn btn-outline-secondary px-4">
@@ -336,6 +410,19 @@
         border-radius: 8px;
     }
     
+    /* Video Upload Styling */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        font-weight: 500;
+    }
+    
+    .alert-success {
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+        color: #0f5132;
+    }
+    
     @media (max-width: 768px) {
         .report-header {
             padding: 1.5rem;
@@ -436,6 +523,53 @@
     function clearFile() {
         document.getElementById('fileInput').value = '';
         document.getElementById('filePreview').style.display = 'none';
+    }
+    
+    // Video upload handler (untuk Multimedia)
+    const videoInput = document.getElementById('videoInput');
+    if (videoInput) {
+        videoInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                
+                // Validasi tipe file video
+                const validVideoTypes = [
+                    'video/mp4',
+                    'video/mpeg',
+                    'video/quicktime',
+                    'video/x-msvideo',
+                    'video/x-matroska'
+                ];
+                
+                if (!validVideoTypes.includes(file.type)) {
+                    alert('Hanya file video (MP4, MOV, AVI, MKV) yang diizinkan!');
+                    this.value = '';
+                    document.getElementById('videoPreview').style.display = 'none';
+                    return;
+                }
+                
+                // Tampilkan info video
+                document.getElementById('videoFileName').textContent = file.name;
+                document.getElementById('videoFileSize').textContent = formatFileSize(file.size);
+                document.getElementById('videoPreview').style.display = 'block';
+            }
+        });
+    }
+    
+    function clearVideo() {
+        document.getElementById('videoInput').value = '';
+        document.getElementById('videoPreview').style.display = 'none';
+    }
+    
+    // Function untuk format ukuran file
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     }
     
     // Initialize progress bar on load

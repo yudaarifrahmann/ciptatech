@@ -13,6 +13,8 @@ class DailyReport extends Model
         'task',
         'description',
         'documentation',
+        'video',
+        'github_link',
     ];
 
     /**

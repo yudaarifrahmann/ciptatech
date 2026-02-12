@@ -149,15 +149,17 @@ class UserController extends Controller
 
     public function resetPassword(Request $request, User $user)
     {
-        $request->validate([
-            'password' => 'required|min:8|confirmed'
-        ]);
-
+        // Generate random password
+        $newPassword = \Illuminate\Support\Str::random(12);
+        
         $user->update([
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($newPassword)
         ]);
 
-        return back()->with('success', 'Password berhasil direset');
+        // TODO: Send email dengan password baru ke user
+        // Mail::send(new ResetPasswordMail($user, $newPassword));
+        
+        return back()->with('success', 'Password berhasil direset. Password baru: ' . $newPassword);
     }
 
     public function toggleStatus(User $user)

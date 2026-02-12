@@ -446,12 +446,26 @@
             <span>CIPTATECH</span>
         </a>
     
-        <div class="desktop-user-info">
+            <div class="desktop-user-info">
             <div class="user-info-desktop d-flex align-items-center">
                 <i class="fas fa-user-circle me-2"></i>
-                <span>{{ auth()->user()->name }} <small class="text-muted">({{ auth()->user()->role }})</small></span>
+                <span>{{ auth()->user()->name }} <small class="text-white">({{ auth()->user()->role }})</small></span>
             </div>
-            
+                <!-- Notification dropdown -->
+                <div class="ms-3 me-2">
+                    <div class="dropdown d-inline">
+                        <button class="btn btn-link text-white position-relative p-0 me-3" id="notifDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell fa-lg"></i>
+                            <span class="badge bg-danger text-white position-absolute" id="notifBadge" style="top:-6px; right:-6px;">{{ auth()->user()->unreadNotifications()->count() }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="notifDropdownBtn" style="width:360px;">
+                            <li id="notifDropdownList"><div class="text-center text-muted py-2">Memuat...</div></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="text-center"><a id="notifViewAllLink" href="/{{ strtolower(auth()->user()->role) }}/notifications" class="small">Lihat semua notifikasi</a></li>
+                        </ul>
+                    </div>
+                </div>
+
             <form method="POST" action="/logout">
                 @csrf
                 <button type="submit" class="btn btn-logout-desktop d-flex align-items-center">
@@ -520,6 +534,7 @@
                     <span>Profil & Pengaturan</span>
                 </a>
             </li>
+            
         </ul>
     @endif
 
@@ -557,6 +572,13 @@
                     <span>Kelola Akun PIC</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/supervisor/profile">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil & Pengaturan</span>
+                </a>
+            </li>
+            
         </ul>
     @endif
 
@@ -593,6 +615,21 @@
                     <span>Audit Aktivitas</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center" href="/superadmin/notifications">
+                    <div>
+                        <i class="fas fa-bell"></i>
+                        <span>Notifikasi</span>
+                    </div>
+                    <span class="badge bg-danger text-white">{{ auth()->user()->unreadNotifications()->count() }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/superadmin/profile">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil & Pengaturan</span>
+                </a>
+            </li>
         </ul>
     @endif
 </aside>
@@ -626,6 +663,9 @@
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Pusher + Echo (optional - requires PUSHER_* env) -->
+<script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.4/dist/echo.iife.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const currentUrl = window.location.pathname;
@@ -673,7 +713,96 @@
         generateBottomNav();
         
         window.addEventListener('resize', generateBottomNav);
+
+        // Load notifications into header dropdown via AJAX
+        const notifBtn = document.getElementById('notifDropdownBtn');
+        const notifList = document.getElementById('notifDropdownList');
+        const notifBadge = document.getElementById('notifBadge');
+
+        async function loadNotifications() {
+            try {
+                // Use the JSON API endpoint we'll create to fetch recent notifications
+                const apiRes = await fetch(location.origin + '/api/notifications');
+                if (!apiRes.ok) throw new Error('Failed to fetch');
+                const data = await apiRes.json();
+
+                if (!data || data.length === 0) {
+                    notifList.innerHTML = '<div class="text-center text-muted py-2">Belum ada notifikasi</div>';
+                    notifBadge.textContent = 0;
+                    return;
+                }
+
+                notifList.innerHTML = '';
+                data.forEach(n => {
+                    const li = document.createElement('li');
+                    li.className = 'mb-2';
+                    li.innerHTML = `
+                        <a href="${location.origin}/${n.role.toLowerCase()}/notifications" class="d-flex justify-content-between align-items-start text-decoration-none text-dark">
+                            <div>
+                                <div class="fw-bold">${n.data.title}</div>
+                                <div class="text-muted small">${n.data.message}</div>
+                            </div>
+                            <div class="text-muted small">${new Date(n.created_at).toLocaleString()}</div>
+                        </a>
+                    `;
+                    notifList.appendChild(li);
+                });
+
+                notifBadge.textContent = data.filter(x => !x.read_at).length;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (notifBtn) {
+            notifBtn.addEventListener('click', loadNotifications);
+        }
     });
+</script>
+
+<script>
+    // Real-time notification listening (if pusher is configured)
+    (function(){
+        const pusherKey = '{{ config('broadcasting.connections.pusher.key') ?? env('PUSHER_APP_KEY') }}';
+        const pusherCluster = '{{ config('broadcasting.connections.pusher.options.cluster') ?? env('PUSHER_APP_CLUSTER') }}';
+        const broadcaster = '{{ config('broadcasting.default') }}';
+
+        if (!pusherKey || broadcaster !== 'pusher') {
+            return;
+        }
+
+        try {
+            window.Pusher = Pusher;
+            window.Echo = new Echo({
+                broadcaster: 'pusher',
+                key: pusherKey,
+                cluster: pusherCluster,
+                forceTLS: true,
+                auth: {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                }
+            });
+
+            const userId = '{{ auth()->id() }}';
+            if (userId) {
+                window.Echo.private('App.Models.User.' + userId)
+                    .notification(function(notification) {
+                        // Increment any badge counts
+                        document.querySelectorAll('.nav-link .badge').forEach(el => {
+                            const n = parseInt(el.textContent) || 0;
+                            el.textContent = n + 1;
+                        });
+
+                        // Optional: show browser alert / toast
+                        alert('Notifikasi baru: ' + (notification.title || notification.message || 'Anda menerima notifikasi'));
+                    });
+            }
+        } catch (e) {
+            console.error('Echo init failed', e);
+        }
+    })();
 </script>
 
 </body>
