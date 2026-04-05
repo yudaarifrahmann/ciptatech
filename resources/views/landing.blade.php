@@ -28,7 +28,19 @@
 
         .navbar {
             padding: 1.5rem 0;
-            background: white;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            padding: 1rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.9);
         }
 
         .navbar-brand {
@@ -309,6 +321,56 @@
             color: #94a3b8;
             font-size: 1rem;
         }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.25rem;
+            }
+            .hero-section {
+                padding: 60px 0;
+                text-align: center;
+            }
+            .hero-subtitle {
+                margin: 0 auto 2rem;
+            }
+            .about-section {
+                padding: 60px 0;
+                margin: 40px 0;
+                border-radius: 40px;
+            }
+            .stat-val {
+                font-size: 1.5rem;
+            }
+            .stat-desc {
+                font-size: 0.8rem;
+            }
+            .stat-card {
+                padding: 1rem;
+            }
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
+            .cta-final-section {
+                padding: 60px 0;
+                margin: 60px 0;
+                border-radius: 40px;
+            }
+            .learning-section {
+                padding: 60px 0;
+                text-align: center;
+            }
+            section[style*="border-radius: 60px"] {
+                border-radius: 40px !important;
+                margin: 40px 0 !important;
+            }
+            .btn-gaskeun {
+                padding: 10px 24px;
+            }
+            .learning-section .check-item {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -318,8 +380,25 @@
             <a class="navbar-brand" href="#">
                 <i class="fas fa-bolt me-2 text-primary"></i>CIPTATECH
             </a>
-            <div class="ms-auto">
-                <a href="{{ route('login') }}" class="btn btn-outline-dark rounded-pill px-4 fw-bold">Masuk</a>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                @guest
+                    <a href="{{ route('register.superadmin') }}" class="btn btn-primary rounded-pill px-3 px-md-4 fw-bold">Daftar</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-dark rounded-pill px-3 px-md-4 fw-bold">Masuk</a>
+                @else
+                    @php
+                        $dashboardRoute = match(auth()->user()->role) {
+                            'superadmin' => route('superadmin.dashboard'),
+                            'supervisor' => route('supervisor.dashboard'),
+                            'PIC'        => route('pic.dashboard'),
+                            default      => route('landing'),
+                        };
+                    @endphp
+                    <a href="{{ $dashboardRoute }}" class="btn btn-primary rounded-pill px-3 px-md-4 fw-bold">Buka Dashboard</a>
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger rounded-pill px-3 px-md-4 fw-bold">Keluar</button>
+                    </form>
+                @endguest
             </div>
         </div>
     </nav>
@@ -330,7 +409,11 @@
                 <div class="col-lg-6">
                     <h1 class="hero-title">Bikin Laporan Gak Pake Ribet.</h1>
                     <p class="hero-subtitle">Platform simpel buat kalian yang mau pantau tugas dan kirim laporan harian jadi lebih cepet dan sat-set!</p>
-                    <a href="{{ route('login') }}" class="btn btn-gaskeun">Gaskeun Login <i class="fas fa-chevron-right ms-2 small"></i></a>
+                    @guest
+                        <a href="{{ route('login') }}" class="btn btn-gaskeun">Gaskeun Login <i class="fas fa-chevron-right ms-2 small"></i></a>
+                    @else
+                        <a href="{{ $dashboardRoute }}" class="btn btn-gaskeun">Lanjut Kerja <i class="fas fa-arrow-right ms-2 small"></i></a>
+                    @endguest
                     
                     <div class="row mt-5 g-3">
                         <div class="col-4">
@@ -435,7 +518,11 @@
                     </div>
                     
                     <div class="mt-5">
-                        <a href="{{ route('login') }}" class="btn btn-gaskeun pulse-btn">Ayo Mulai Belajar!</a>
+                        @guest
+                            <a href="{{ route('login') }}" class="btn btn-gaskeun pulse-btn">Ayo Mulai Belajar!</a>
+                        @else
+                            <a href="{{ $dashboardRoute }}" class="btn btn-gaskeun pulse-btn">Lanjut Belajar!</a>
+                        @endguest
                     </div>
                 </div>
             </div>
@@ -650,7 +737,11 @@
         <div class="cta-final-section text-center">
             <h2 class="fw-bold mb-4 fs-1">Udah Siap Join Tim Ciptatech?</h2>
             <p class="mb-5 opacity-75">Gak usah tunggu lama-lama, langsung masuk dan mulai kolaborasi bareng kita!</p>
-            <a href="{{ route('login') }}" class="btn btn-light rounded-pill px-5 py-3 fw-bold text-primary pulse-btn">Ayo Masuk Sekarang!</a>
+            @guest
+                <a href="{{ route('login') }}" class="btn btn-light rounded-pill px-5 py-3 fw-bold text-primary pulse-btn">Ayo Masuk Sekarang!</a>
+            @else
+                <a href="{{ $dashboardRoute }}" class="btn btn-light rounded-pill px-5 py-3 fw-bold text-primary pulse-btn">Balik ke Dashboard</a>
+            @endguest
         </div>
     </section>
 
@@ -662,12 +753,21 @@
                 </a>
             </div>
             <p class="mb-1">Dibuat dengan semangat oleh Tim Ciptatech &copy; 2026</p>
-            <p class="small text-muted">Platform lapor tugas yang bikin hari-harimu jadi lebih sat-set!</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Navbar Scrolled Effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
         // Simple Scroll Animation
         const observerOptions = { threshold: 0.1 };
         const observer = new IntersectionObserver((entries) => {

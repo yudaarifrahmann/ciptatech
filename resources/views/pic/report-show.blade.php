@@ -76,6 +76,27 @@
                             <h4 class="fw-bold mb-0 text-success">{{ $report->progress }}%</h4>
                         </div>
                     </div>
+
+                    <!-- DYNAMIC FIELDS -->
+                    @if($report->additional_data && count($report->additional_data) > 0)
+                    <div class="mt-5 pt-4 border-top">
+                        <h6 class="fw-bold mb-3 text-primary">Informasi Tambahan Divisi</h6>
+                        <div class="row g-3">
+                            @foreach($report->additional_data as $label => $value)
+                                <div class="col-md-6">
+                                    <label class="text-muted small text-uppercase fw-bold mb-1 d-block">{{ $label }}</label>
+                                    @if(is_string($value) && (str_starts_with($value, 'task_reports/additional/')))
+                                        <a href="{{ asset('storage/' . $value) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-file-download me-1"></i>Lihat Lampiran
+                                        </a>
+                                    @else
+                                        <p class="fw-bold mb-0 text-dark">{{ $value ?: '-' }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
 

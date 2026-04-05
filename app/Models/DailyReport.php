@@ -7,14 +7,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DailyReport extends Model
 {
+    use \Illuminate\Database\Eloquent\Factories\HasFactory, \App\Traits\BelongsToOrganization;
+
     protected $fillable = [
         'user_id',
+        'organization_id',
         'report_date',
         'task',
         'description',
         'documentation',
         'video',
         'github_link',
+        'additional_data',
+    ];
+
+    protected $casts = [
+        'report_date' => 'date',
+        'additional_data' => 'array',
     ];
 
     /**

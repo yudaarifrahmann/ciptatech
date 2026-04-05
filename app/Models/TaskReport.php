@@ -8,12 +8,13 @@ use App\Models\User;
 
 class TaskReport extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\BelongsToOrganization;
 
     protected $table = 'task_reports';
 
     protected $fillable = [
         'user_id',
+        'organization_id',
         'task_name',
         'description',
         'progress',

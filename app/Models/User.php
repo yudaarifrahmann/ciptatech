@@ -7,26 +7,28 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Division;
+use App\Traits\BelongsToOrganization;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, BelongsToOrganization;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-   protected $fillable = [
-    'name',
-    'email',
-    'password',
-    'role',
-    'division_id',
-    'is_active',
-    'avatar',
-];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+        'division_id',
+        'organization_id',
+        'is_active',
+        'avatar',
+    ];
 
 
 
@@ -71,5 +73,10 @@ class User extends Authenticatable
     public function picSubmissions()
     {
         return $this->hasMany(TaskSubmission::class, 'pic_id');
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 }

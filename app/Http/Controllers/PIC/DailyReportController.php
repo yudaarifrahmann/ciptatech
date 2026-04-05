@@ -10,7 +10,13 @@ class DailyReportController extends Controller
 {
     public function index()
     {
-        return view('pic.daily-report');
+        $user = auth()->user();
+        $schema = \App\Models\FormSchema::where('division_id', $user->division_id)
+            ->where('form_type', 'daily')
+            ->where('is_active', true)
+            ->first();
+
+        return view('pic.daily-report', compact('schema'));
     }
 
     public function store(Request $request)
@@ -36,6 +42,34 @@ class DailyReportController extends Controller
         
         $request->validate($rules);
 
+        // Dynamic Validation & Processing
+        $schema = \App\Models\FormSchema::where('division_id', $user->division_id)
+            ->where('form_type', 'daily')
+            ->where('is_active', true)
+            ->first();
+        $additionalData = [];
+        
+        if ($schema && is_array($schema->schema)) {
+            foreach ($schema->schema as $field) {
+                $fieldName = $field['label'];
+                
+                if ($field['type'] == 'file') {
+                    if ($request->hasFile("additional_files.$fieldName")) {
+                        $path = $request->file("additional_files.$fieldName")->store('daily_reports/additional', 'public');
+                        $additionalData[$fieldName] = $path;
+                    } elseif (isset($field['required']) && $field['required']) {
+                        return redirect()->back()->withErrors([$fieldName => "Field $fieldName wajib diisi."])->withInput();
+                    }
+                } else {
+                    $val = $request->input("additional_data.$fieldName");
+                    if (isset($field['required']) && $field['required'] && empty($val)) {
+                        return redirect()->back()->withErrors([$fieldName => "Field $fieldName wajib diisi."])->withInput();
+                    }
+                    $additionalData[$fieldName] = $val;
+                }
+            }
+        }
+
         $filePath = null;
         if ($request->hasFile('documentation')) {
             $filePath = $request->file('documentation')->store('daily-report', 'public');
@@ -53,15 +87,17 @@ class DailyReportController extends Controller
 
         DailyReport::create([
             'user_id'      => auth()->id(),
+            'organization_id' => $user->organization_id,
             'report_date'  => $request->report_date,
             'task'         => $request->task,
             'description'  => $request->description,
             'documentation'=> $filePath,
             'video'        => $videoPath,
             'github_link'  => $githubLink,
+            'additional_data' => $additionalData,
         ]);
 
-        return back()->with('success', 'Daily report berhasil disimpan');
+        return redirect()->route('pic.dashboard')->with('success', 'Daily report berhasil disimpan dan dikirim!');
     }
 }
  

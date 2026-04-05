@@ -316,19 +316,38 @@
             color: var(--primary-color);
         }
 
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1010;
+        }
+        .sidebar-overlay.show {
+            display: block;
+        }
+
         @media (max-width: 992px) {
             .sidebar {
-                display: none !important;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                display: block !important;
+            }
+            .sidebar.show {
+                transform: translateX(0);
             }
 
             .bottom-nav {
-                display: flex;
+                display: none !important;
             }
 
             .content-area {
                 margin-left: 0;
                 padding: 15px;
-                padding-bottom: 80px;
+                padding-bottom: 20px;
                 min-height: calc(100vh - 56px);
             }
 
@@ -347,11 +366,14 @@
                 display: none;
             }
 
-            .navbar-brand {
+            .mobile-brand-wrapper {
                 order: 1;
+                flex: 1;
+            }
+
+            .navbar-brand {
                 justify-content: flex-start;
                 font-size: 1.1rem;
-                flex: 1;
             }
 
             .navbar-brand i {
@@ -373,7 +395,7 @@
 
             .content-area {
                 padding: 10px;
-                padding-bottom: 80px;
+                padding-bottom: 20px;
             }
 
             .content-header h1 {
@@ -420,7 +442,7 @@
             
             .content-area {
                 padding: 8px;
-                padding-bottom: 80px;
+                padding-bottom: 20px;
             }
         }
 
@@ -441,10 +463,15 @@
 <!-- Navbar -->
 <nav class="navbar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-            <i class="fas fa-chart-network d-none d-md-inline"></i>
-            <span>CIPTATECH</span>
-        </a>
+        <div class="mobile-brand-wrapper d-flex align-items-center">
+            <button class="btn btn-link text-white p-0 me-3 d-lg-none" id="hamburgerBtn" style="text-decoration: none;">
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
+            <a class="navbar-brand m-0" href="#">
+                <i class="fas fa-chart-network d-none d-md-inline"></i>
+                <span>CIPTATECH</span>
+            </a>
+        </div>
     
             <div class="desktop-user-info">
             <div class="user-info-desktop d-flex align-items-center">
@@ -493,8 +520,10 @@
     </div>
 </nav>
 
-<!-- Sidebar (Desktop Only) -->
-<aside class="sidebar d-print-none d-none d-lg-block">
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar d-print-none" id="appSidebar">
     <!-- PIC -->
     @if (in_array(auth()->user()->role, ['PIC']))
         <h6><i class="fas fa-user-tie me-2"></i> MENU PIC</h6>
@@ -578,9 +607,14 @@
                     <span>Profil & Pengaturan</span>
                 </a>
             </li>
-            
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('supervisor.form-builder.index') }}">
+                    <i class="fas fa-file-signature"></i>
+                    <span>Atur Formulir</span>
+                </a>
+            </li>
         </ul>
-    @endif
+@endif
 
     <!-- SUPERADMIN -->
     @if (in_array(auth()->user()->role, ['superadmin']))
@@ -714,6 +748,23 @@
         
         window.addEventListener('resize', generateBottomNav);
 
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const appSidebar = document.getElementById('appSidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        if (hamburgerBtn && appSidebar && sidebarOverlay) {
+            hamburgerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                appSidebar.classList.toggle('show');
+                sidebarOverlay.classList.toggle('show');
+            });
+
+            sidebarOverlay.addEventListener('click', function() {
+                appSidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            });
+        }
+
         // Load notifications into header dropdown via AJAX
         const notifBtn = document.getElementById('notifDropdownBtn');
         const notifList = document.getElementById('notifDropdownList');
@@ -804,6 +855,6 @@
         }
     })();
 </script>
-
+    @stack('scripts')
 </body>
 </html>

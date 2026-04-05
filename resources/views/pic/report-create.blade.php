@@ -131,121 +131,43 @@
                             </div>
                         </div>
 
-                        <!-- GITHUB LINK (HANYA UNTUK DIVISI SOFTWARE HOST) -->
-                        @if(auth()->user()->division_id == 3)
-                        <div class="mb-4">
-                            <label class="form-label fw-bold mb-2">
-                                <i class="fab fa-github me-1 text-dark"></i>
-                                Link Repository GitHub
-                                <span class="badge bg-info ms-2">Software Host</span>
-                                <span class="text-muted fw-normal">(Opsional)</span>
-                            </label>
-                            <input type="url" 
-                                   name="github_link" 
-                                   class="form-control form-control-lg border-1 shadow-sm" 
-                                   id="githubLinkReport"
-                                   placeholder="https://github.com/username/repository"
-                                   pattern="https://.*github\.com/.*">
-                            <div class="form-text text-muted mt-1">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Sertakan link repository GitHub jika ada kode yang di-push atau di-update
-                            </div>
-                        </div>
-                        @endif
+                        <!-- DYNAMIC FIELDS FROM SUPERVISOR SCHEMA -->
+                        @if($schema && is_array($schema->schema))
+                            <div class="dynamic-fields-section mb-4 mt-5 pt-4 border-top">
+                                <h6 class="fw-bold mb-4 text-primary">
+                                    <i class="fas fa-list-ul me-2"></i>Informasi Tambahan dari Divisi
+                                </h6>
+                                
+                                @foreach($schema->schema as $index => $field)
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold mb-2">
+                                            {{ $field['label'] }}
+                                            @if(isset($field['required']) && $field['required'])
+                                                <span class="text-danger">*</span>
+                                            @endif
+                                        </label>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold mb-2">
-                                <i class="fas fa-paperclip me-1 text-primary"></i>
-                                Upload File
-                                <span class="text-muted fw-normal">(Opsional)</span>
-                            </label>
-                            
-                            <div class="file-upload-area border-2 border-dashed rounded-3 p-4 text-center">
-                                <div class="upload-icon mb-3">
-                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
-                                </div>
-                                <h5 class="mb-2">Drop file di sini atau klik untuk upload</h5>
-                                <p class="text-muted mb-3">Maksimal ukuran file: 10MB</p>
-                                
-                                <div class="input-group mb-3">
-                                    <input type="file" 
-                                           name="file" 
-                                           class="form-control" 
-                                           id="fileInput"
-                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                                    <button class="btn btn-outline-primary" type="button" onclick="document.getElementById('fileInput').click()">
-                                        <i class="fas fa-folder-open me-1"></i>Browse
-                                    </button>
-                                </div>
-                                
-                                <div class="file-preview mt-3" id="filePreview" style="display: none;">
-                                    <div class="alert alert-info d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-file me-2"></i>
-                                            <span id="fileName"></span>
-                                        </div>
-                                        <button type="button" class="btn-close" onclick="clearFile()"></button>
+                                        @if($field['type'] == 'text')
+                                            <input type="text" name="additional_data[{{ $field['label'] }}]" class="form-control" placeholder="Masukkan {{ $field['label'] }}" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>
+                                        @elseif($field['type'] == 'textarea')
+                                            <textarea name="additional_data[{{ $field['label'] }}]" class="form-control" rows="3" placeholder="Masukkan {{ $field['label'] }}" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}></textarea>
+                                        @elseif($field['type'] == 'number')
+                                            <input type="number" name="additional_data[{{ $field['label'] }}]" class="form-control" placeholder="0" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>
+                                        @elseif($field['type'] == 'date')
+                                            <input type="date" name="additional_data[{{ $field['label'] }}]" class="form-control" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>
+                                        @elseif($field['type'] == 'file')
+                                            <input type="file" name="additional_files[{{ $field['label'] }}]" class="form-control" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>
+                                        @elseif($field['type'] == 'select')
+                                            <select name="additional_data[{{ $field['label'] }}]" class="form-select" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>
+                                                <option value="">Pilih {{ $field['label'] }}</option>
+                                                <!-- Options could be expanded here if supervisor UI allows it -->
+                                                <option value="Ya">Ya</option>
+                                                <option value="Tidak">Tidak</option>
+                                            </select>
+                                        @endif
                                     </div>
-                                </div>
-                                
-                                <div class="supported-files mt-3">
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Format yang didukung: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG
-                                    </small>
-                                </div>
+                                @endforeach
                             </div>
-                        </div>
-
-                        <!-- VIDEO UPLOAD (HANYA UNTUK DIVISI MULTIMEDIA) -->
-                        @if(auth()->user()->division_id == 1)
-                        <div class="mb-4">
-                            <label class="form-label fw-bold mb-2">
-                                <i class="fas fa-video me-1 text-success"></i>
-                                Upload Video
-                                <span class="badge bg-success ms-2">Multimedia</span>
-                                <span class="text-muted fw-normal">(Opsional)</span>
-                            </label>
-                            
-                            <div class="file-upload-area border-2 border-dashed rounded-3 p-4 text-center">
-                                <div class="upload-icon mb-3">
-                                    <i class="fas fa-cloud-upload-alt fa-3x text-success opacity-50"></i>
-                                </div>
-                                <h5 class="mb-2">Drop video di sini atau klik untuk upload</h5>
-                                <p class="text-muted mb-3">Mp4, MOV, AVI, MKV - Tanpa batasan ukuran</p>
-                                
-                                <div class="input-group mb-3">
-                                    <input type="file" 
-                                           name="video" 
-                                           class="form-control" 
-                                           id="videoInput"
-                                           accept="video/*">
-                                    <button class="btn btn-outline-success" type="button" onclick="document.getElementById('videoInput').click()">
-                                        <i class="fas fa-folder-open me-1"></i>Browse
-                                    </button>
-                                </div>
-                                
-                                <div class="video-preview mt-3" id="videoPreview" style="display: none;">
-                                    <div class="alert alert-success d-flex justify-content-between align-items-center">
-                                        <div class="d-flex align-items-center">
-                                            <i class="fas fa-check-circle me-2"></i>
-                                            <div>
-                                                <div id="videoFileName" class="fw-bold mb-1"></div>
-                                                <small id="videoFileSize" class="text-muted"></small>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn-close" onclick="clearVideo()"></button>
-                                    </div>
-                                </div>
-                                
-                                <div class="supported-files mt-3">
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Format yang didukung: MP4, MOV, AVI, MKV
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
                         @endif
 
 

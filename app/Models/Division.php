@@ -12,6 +12,7 @@ class Division extends Model
     protected $fillable = [
         'name',
         'description',
+        'organization_id',
         'is_active',
     ];
 
@@ -35,5 +36,10 @@ class Division extends Model
     public function supervisors()
     {
         return $this->hasMany(User::class)->where('role', 'supervisor');
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 }

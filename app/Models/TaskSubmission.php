@@ -7,25 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaskSubmission extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\BelongsToOrganization;
 
     protected $fillable = [
         'task_id',
         'pic_id',
+        'status',
         'submission_notes',
         'submission_file',
-        'status',
-        'reviewer_feedback',
-        'reviewed_at',
-        'completed_tasks_count',
-        'completed_at',
+        'additional_data',
         'submitted_at',
-        'github_link',
+        'reviewed_at',
+        'reviewer_feedback',
+        'completed_tasks_count',
+        'organization_id',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
+        'additional_data' => 'array',
     ];
 
     public function task()

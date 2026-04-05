@@ -175,13 +175,16 @@
             </div>
 
             <button type="submit" class="btn btn-login w-100 mb-3">
-                Login ke Sistem <i class="fas fa-sign-in-alt ms-2"></i>
+                Login <i class="fas fa-sign-in-alt ms-2"></i>
             </button>
         </form>
+        <div class="mt-4 text-center">
+        <p class="small text-muted mb-1">Butuh akun untuk Tim Anda?</p>
+        <a href="{{ route('register.superadmin') }}" class="text-primary fw-bold text-decoration-none small">Daftar Di Sini</a>
     </div>
-
     <div class="back-to-landing">
         <a href="{{ url('/') }}"><i class="fas fa-arrow-left me-1 small"></i> Kembali </a>
+    </div>
     </div>
 </div>
 

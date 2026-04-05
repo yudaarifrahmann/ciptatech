@@ -105,9 +105,15 @@
                                         {{ $completedCount }}/{{ $childTasks->count() }} Selesai
                                     </span>
                                     
+                                    <!-- Detail Link -->
+                                    <a href="{{ route('pic.tasks.show', $task->id) }}" class="btn btn-sm btn-outline-primary ms-2 me-2" onclick="event.stopPropagation();">
+                                        <i class="fas fa-eye"></i> Detail & Submit
+                                    </a>
+
                                     <!-- Toggle Icon -->
                                     <i class="fas fa-chevron-down toggle-icon ms-2 transition-icon"></i>
                                 </div>
+
                             </button>
 
                             <!-- Task Items - Collapsible Content -->

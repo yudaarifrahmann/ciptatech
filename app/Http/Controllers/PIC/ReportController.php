@@ -4,13 +4,20 @@ namespace App\Http\Controllers\PIC;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TaskReport;
+use App\Models\FormSchema;
 use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
     public function create()
     {
-        return view('pic.report-create');
+        $user = Auth::user();
+        $schema = FormSchema::where('division_id', $user->division_id)
+            ->where('form_type', 'weekly')
+            ->where('is_active', true)
+            ->first();
+
+        return view('pic.report-create', compact('schema'));
     }
 
     public function store(Request $request)

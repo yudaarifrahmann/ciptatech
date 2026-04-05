@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
-    use HasFactory;
+    use HasFactory, \App\Traits\BelongsToOrganization;
 
     protected $fillable = [
+        'user_id',
+        'organization_id',
         'division_id',
         'supervisor_id',
         'title',

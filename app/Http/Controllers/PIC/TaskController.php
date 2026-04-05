@@ -48,7 +48,13 @@ class TaskController extends Controller
 
         $task->load('supervisor');
 
-        return view('pic.tasks.show', compact('task', 'mySubmission'));
+        // Fetch dynamic form schema for submission
+        $schema = \App\Models\FormSchema::where('division_id', $pic->division_id)
+            ->where('form_type', 'submission')
+            ->where('is_active', true)
+            ->first();
+
+        return view('pic.tasks.show', compact('task', 'mySubmission', 'schema'));
     }
 
     public function submitWork(Request $request, Task $task)
@@ -79,14 +85,43 @@ class TaskController extends Controller
             'submission_file' => 'nullable|file|max:10240', // Max 10MB
         ]);
 
+        // Dynamic Validation & Processing
+        $schema = \App\Models\FormSchema::where('division_id', $pic->division_id)
+            ->where('form_type', 'submission')
+            ->where('is_active', true)
+            ->first();
+        $additionalData = [];
+        
+        if ($schema && is_array($schema->schema)) {
+            foreach ($schema->schema as $field) {
+                $fieldName = $field['label'];
+                
+                if ($field['type'] == 'file') {
+                    if ($request->hasFile("additional_files.$fieldName")) {
+                        $path = $request->file("additional_files.$fieldName")->store('submissions/additional', 'public');
+                        $additionalData[$fieldName] = $path;
+                    } elseif (isset($field['required']) && $field['required']) {
+                        return redirect()->back()->withErrors([$fieldName => "Field $fieldName wajib diisi."])->withInput();
+                    }
+                } else {
+                    $val = $request->input("additional_data.$fieldName");
+                    if (isset($field['required']) && $field['required'] && empty($val)) {
+                        return redirect()->back()->withErrors([$fieldName => "Field $fieldName wajib diisi."])->withInput();
+                    }
+                    $additionalData[$fieldName] = $val;
+                }
+            }
+        }
+
         $filePath = null;
         if ($request->hasFile('submission_file')) {
-            $filePath = $request->file('submission_file')->store('submissions');
+            $filePath = $request->file('submission_file')->store('submissions', 'public');
         }
 
         $mySubmission->update([
             'submission_notes' => $validated['submission_notes'],
             'submission_file' => $filePath ?? $mySubmission->submission_file,
+            'additional_data' => $additionalData,
             'status' => 'submitted',
             'submitted_at' => now(),
         ]);

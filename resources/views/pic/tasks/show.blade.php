@@ -156,6 +156,47 @@
                                 </small>
                             </div>
 
+                            <!-- DYNAMIC FIELDS FROM SUPERVISOR SCHEMA -->
+                            @if(isset($schema) && is_array($schema->schema))
+                                <div class="dynamic-fields-section mb-4 mt-5 pt-4 border-top">
+                                    <h6 class="fw-bold mb-4 text-primary">
+                                        <i class="fas fa-list-ul me-2"></i>Informasi Tambahan (Detail Tugas)
+                                    </h6>
+                                    
+                                    @foreach($schema->schema as $index => $field)
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold mb-2">
+                                                {{ $field['label'] }}
+                                                @if(isset($field['required']) && $field['required'])
+                                                    <span class="text-danger">*</span>
+                                                @endif
+                                            </label>
+
+                                            @if($field['type'] == 'text')
+                                                <input type="text" name="additional_data[{{ $field['label'] }}]" class="form-control" placeholder="Masukkan {{ $field['label'] }}" {{ isset($field['required']) && $field['required'] ? 'required' : '' }} value="{{ $mySubmission->additional_data[$field['label']] ?? '' }}">
+                                            @elseif($field['type'] == 'textarea')
+                                                <textarea name="additional_data[{{ $field['label'] }}]" class="form-control" rows="3" placeholder="Masukkan {{ $field['label'] }}" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>{{ $mySubmission->additional_data[$field['label']] ?? '' }}</textarea>
+                                            @elseif($field['type'] == 'number')
+                                                <input type="number" name="additional_data[{{ $field['label'] }}]" class="form-control" placeholder="0" {{ isset($field['required']) && $field['required'] ? 'required' : '' }} value="{{ $mySubmission->additional_data[$field['label']] ?? '' }}">
+                                            @elseif($field['type'] == 'date')
+                                                <input type="date" name="additional_data[{{ $field['label'] }}]" class="form-control" {{ isset($field['required']) && $field['required'] ? 'required' : '' }} value="{{ $mySubmission->additional_data[$field['label']] ?? '' }}">
+                                            @elseif($field['type'] == 'file')
+                                                <input type="file" name="additional_files[{{ $field['label'] }}]" class="form-control" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>
+                                                @if(isset($mySubmission->additional_data[$field['label']]))
+                                                    <small class="text-muted">File sudah ada: <a href="{{ asset('storage/' . $mySubmission->additional_data[$field['label']]) }}" target="_blank">Lihat</a></small>
+                                                @endif
+                                            @elseif($field['type'] == 'select')
+                                                <select name="additional_data[{{ $field['label'] }}]" class="form-select" {{ isset($field['required']) && $field['required'] ? 'required' : '' }}>
+                                                    <option value="">Pilih {{ $field['label'] }}</option>
+                                                    <option value="Ya" {{ ($mySubmission->additional_data[$field['label']] ?? '') == 'Ya' ? 'selected' : '' }}>Ya</option>
+                                                    <option value="Tidak" {{ ($mySubmission->additional_data[$field['label']] ?? '') == 'Tidak' ? 'selected' : '' }}>Tidak</option>
+                                                </select>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
                             <!-- Info -->
                             <div class="alert alert-info border-0" role="alert">
                                 <i class="fas fa-info-circle me-2"></i>

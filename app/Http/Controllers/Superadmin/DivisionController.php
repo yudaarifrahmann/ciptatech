@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Division;
-use Illuminate\Http\Request; // Import ini wajib ditambahkan
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class DivisionController extends Controller
 {
@@ -23,8 +24,12 @@ class DivisionController extends Controller
      */
     public function store(Request $request) 
     {
+        $user = auth()->user();
         $request->validate([
-            'name' => 'required|unique:divisions,name',
+            'name' => [
+                'required',
+                Rule::unique('divisions')->where(fn ($query) => $query->where('organization_id', $user->organization_id))
+            ],
             'supervisor_ids' => 'nullable|array',
             'supervisor_ids.*' => 'exists:users,id'
         ]);
@@ -45,8 +50,12 @@ class DivisionController extends Controller
      */
     public function update(Request $request, Division $division) 
     {
+        $user = auth()->user();
         $request->validate([
-            'name' => 'required|unique:divisions,name,' . $division->id,
+            'name' => [
+                'required',
+                Rule::unique('divisions')->ignore($division->id)->where(fn ($query) => $query->where('organization_id', $user->organization_id))
+            ],
             'supervisor_ids' => 'nullable|array',
             'supervisor_ids.*' => 'exists:users,id'
         ]);

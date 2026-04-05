@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 
 // PIC
 use App\Http\Controllers\PIC\DashboardController as PicDashboardController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Supervisor\ReportController as SupervisorReportControll
 use App\Http\Controllers\Supervisor\UserController;
 use App\Http\Controllers\Supervisor\TaskController as SupervisorTaskController;
 use App\Http\Controllers\Supervisor\ProfileController as SupervisorProfileController;
+use App\Http\Controllers\Supervisor\FormBuilderController;
 
 // Superadmin
 use App\Http\Controllers\Superadmin\DivisionController;
@@ -49,6 +51,14 @@ Route::post('/login', [LoginController::class, 'authenticate'])
 Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
+
+Route::get('/register/superadmin', [RegisterController::class, 'showRegistrationForm'])
+    ->middleware('guest')
+    ->name('register.superadmin');
+
+Route::post('/register/superadmin', [RegisterController::class, 'register'])
+    ->middleware('guest')
+    ->name('register.superadmin.post');
 
 /*
 |--------------------------------------------------------------------------
@@ -163,6 +173,12 @@ Route::middleware(['auth', 'role:supervisor'])
 
         Route::post('/profile/2fa', [SupervisorProfileController::class, 'toggle2FA'])
             ->name('profile.2fa');
+
+        Route::get('/form-builder', [FormBuilderController::class, 'index'])
+            ->name('form-builder.index');
+
+        Route::post('/form-builder', [FormBuilderController::class, 'store'])
+            ->name('form-builder.store');
 
         Route::get('/monitoring', [MonitoringController::class, 'index'])
             ->name('monitoring');

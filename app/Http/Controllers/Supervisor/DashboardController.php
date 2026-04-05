@@ -24,65 +24,51 @@ class DashboardController extends Controller
         // Total divisi aktif
         $totalDivisions = Division::where('is_active', true)->count();
         
-        // Dapatkan semua divisi dengan statistik
-        $divisions = Division::where('is_active', true)
-            ->with(['users' => function ($query) {
-                $query->where('is_active', true);
-            }])
+        // Dapatkan semua PIC di organisasi ini dengan statistik laporan mereka
+        $pics = User::where('role', 'PIC')
+            ->where('is_active', true)
+            ->with(['taskReports' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }, 'division'])
             ->get()
-            ->map(function ($division) {
-                // Hitung progress rata-rata untuk divisi ini
-                $tasksCount = TaskReport::whereIn('user_id', $division->users->pluck('id'))->count();
+            ->map(function ($pic) {
+                $latestReport = $pic->taskReports->first();
+                $avgProgress = $pic->taskReports->avg('progress') ?? 0;
                 
-                if ($tasksCount == 0) {
-                    $avgProgress = 0;
-                } else {
-                    $avgProgress = TaskReport::whereIn('user_id', $division->users->pluck('id'))
-                        ->avg('progress') ?? 0;
-                }
-                
-                // Tentukan status berdasarkan progress
+                // Tentukan status berdasarkan progress rata-rata
                 if ($avgProgress >= 80) {
-                    $status = 'optimal';
-                    $statusLabel = 'Optimal';
+                    $statusLabel = 'Sangat Aktif';
                     $statusColor = 'info';
-                    $statusIcon = 'fa-tachometer-alt';
-                } elseif ($avgProgress >= 70) {
-                    $status = 'on-track';
-                    $statusLabel = 'On Track';
-                    $statusColor = 'success';
-                    $statusIcon = 'fa-check-circle';
+                    $statusIcon = 'fa-fire';
                 } elseif ($avgProgress >= 50) {
-                    $status = 'attention';
-                    $statusLabel = 'Perlu Perhatian';
-                    $statusColor = 'warning';
-                    $statusIcon = 'fa-exclamation-triangle';
+                    $statusLabel = 'Produktif';
+                    $statusColor = 'success';
+                    $statusIcon = 'fa-check';
                 } else {
-                    $status = 'critical';
-                    $statusLabel = 'Kritis';
-                    $statusColor = 'danger';
-                    $statusIcon = 'fa-exclamation-circle';
+                    $statusLabel = 'Perlu Support';
+                    $statusColor = 'warning';
+                    $statusIcon = 'fa-hands-helping';
                 }
+
+                $pic->latest_task = $latestReport ? $latestReport->task->title ?? 'Tugas Lapangan' : 'Belum ada tugas';
+                $pic->avg_progress = round($avgProgress, 0);
+                $pic->status_label = $statusLabel;
+                $pic->status_color = $statusColor;
+                $pic->status_icon = $statusIcon;
                 
-                $division->avg_progress = round($avgProgress, 0);
-                $division->active_projects = $tasksCount;
-                $division->status = $status;
-                $division->status_label = $statusLabel;
-                $division->status_color = $statusColor;
-                $division->status_icon = $statusIcon;
-                
-                return $division;
+                return $pic;
             });
         
-        // Laporan yang menunggu review
+        // Laporan yang menunggu review (tetap sama)
         $pendingReviews = TaskReport::where('status', 'pending')
-            ->with('pic')
+            ->with(['pic.division', 'task'])
             ->orderBy('created_at', 'desc')
-            ->take(3)
+            ->take(5)
             ->get()
             ->map(function ($report) {
                 $report->division_name = $report->pic->division->name ?? 'N/A';
-                $report->deadline = $report->created_at->addDays(5)->format('j M');
+                $report->task_name = $report->task->title ?? 'Laporan Tugas';
+                $report->deadline = $report->created_at->addDays(3)->format('j M');
                 return $report;
             });
         
@@ -90,7 +76,7 @@ class DashboardController extends Controller
         $reportStats = [
             'approved' => TaskReport::where('status', 'approved')->count(),
             'pending' => TaskReport::where('status', 'pending')->count(),
-            'revision' => TaskReport::where('status', 'revision')->count(),
+            'revision' => TaskReport::where('status', 'revisi')->count(),
         ];
         
         return view('supervisor.dashboard', [
@@ -98,7 +84,7 @@ class DashboardController extends Controller
             'approvedReports' => $approvedReports,
             'pendingRevision' => $pendingRevision,
             'totalDivisions' => $totalDivisions,
-            'divisions' => $divisions,
+            'pics' => $pics,
             'pendingReviews' => $pendingReviews,
             'reportStats' => $reportStats,
         ]);

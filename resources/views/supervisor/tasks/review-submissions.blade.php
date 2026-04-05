@@ -78,6 +78,29 @@
                                 <p class="mb-0">{{ $submission->submission_notes }}</p>
                             </div>
 
+                            <!-- Additional Dynamic Data -->
+                            @if ($submission->additional_data && is_array($submission->additional_data))
+                                <div class="mb-3 p-2 bg-light rounded border-start border-primary border-4">
+                                    <small class="text-primary fw-bold d-block mb-2">
+                                        <i class="fas fa-list-ul me-1"></i> Informasi Tambahan dari Form Kustom:
+                                    </small>
+                                    <div class="row g-2">
+                                        @foreach ($submission->additional_data as $label => $value)
+                                            <div class="col-6">
+                                                <small class="text-muted d-block">{{ $label }}</small>
+                                                @if (is_string($value) && (str_starts_with($value, 'submissions/additional/') || str_starts_with($value, 'daily_reports/additional/') || str_starts_with($value, 'task_reports/additional/')))
+                                                    <a href="{{ asset('storage/' . $value) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2 mt-1" style="font-size: 0.75rem;">
+                                                        <i class="fas fa-file-download me-1"></i> Lihat File
+                                                    </a>
+                                                @else
+                                                    <strong>{{ $value }}</strong>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             <!-- Submission File -->
                             @if ($submission->submission_file)
                                 <div class="mb-3">

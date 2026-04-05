@@ -114,20 +114,19 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="fw-bold mb-1">
-                                <i class="fas fa-chart-line me-2 text-primary"></i>
-                                Ringkasan Progres Semua Divisi
+                                <i class="fas fa-users me-2 text-primary"></i>
+                                Performa & Progres Anggota Tim
                             </h5>
-                            <p class="text-muted small mb-0">Monitoring perkembangan setiap divisi</p>
+                            <p class="text-muted small mb-0">Pantau produktivitas setiap PIC secara real-time</p>
                         </div>
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-calendar me-1"></i>Bulan Ini
+                                <i class="fas fa-filter me-1"></i>Semua Divisi
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Minggu Ini</a></li>
-                                <li><a class="dropdown-item" href="#">Bulan Ini</a></li>
-                                <li><a class="dropdown-item" href="#">3 Bulan Terakhir</a></li>
-                                <li><a class="dropdown-item" href="#">Tahun Ini</a></li>
+                                <li><a class="dropdown-item" href="#">Software Host</a></li>
+                                <li><a class="dropdown-item" href="#">Multimedia</a></li>
+                                <li><a class="dropdown-item" href="#">Marketing</a></li>
                             </ul>
                         </div>
                     </div>
@@ -138,73 +137,61 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-4">Divisi</th>
-                                    <th>Progress Rata-rata</th>
+                                    <th class="ps-4">PIC / Anggota</th>
+                                    <th>Tugas Terakhir</th>
+                                    <th>Progres</th>
                                     <th>Status</th>
-                                    <th class="text-end pe-4">Detail</th>
+                                    <th class="text-end pe-4">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($divisions as $division)
-                                @php
-                                    $statusColorMap = [
-                                        'optimal' => ['bg' => 'rgba(13, 202, 240, 0.1)', 'border' => '#0cc7f0', 'text' => '#0cc7f0', 'icon' => 'fa-tachometer-alt', 'label' => 'Optimal', 'icon-bg' => 'rgba(13, 202, 240, 0.1)'],
-                                        'on-track' => ['bg' => 'rgba(25, 135, 84, 0.1)', 'border' => '#198754', 'text' => '#198754', 'icon' => 'fa-check-circle', 'label' => 'On Track', 'icon-bg' => 'rgba(25, 135, 84, 0.1)'],
-                                        'attention' => ['bg' => 'rgba(255, 193, 7, 0.1)', 'border' => '#ffc107', 'text' => '#ffc107', 'icon' => 'fa-exclamation-triangle', 'label' => 'Perlu Perhatian', 'icon-bg' => 'rgba(255, 193, 7, 0.1)'],
-                                        'critical' => ['bg' => 'rgba(220, 53, 69, 0.1)', 'border' => '#dc3545', 'text' => '#dc3545', 'icon' => 'fa-exclamation-circle', 'label' => 'Kritis', 'icon-bg' => 'rgba(220, 53, 69, 0.1)']
-                                    ];
-                                    $colors = $statusColorMap[$division->status] ?? $statusColorMap['critical'];
-                                    $divisionIcons = [
-                                        'Multimedia' => 'fa-photo-video',
-                                        'Software Host' => 'fa-server',
-                                        'IT Support' => 'fa-headset',
-                                    ];
-                                    $divisionIcon = $divisionIcons[$division->name] ?? 'fa-network-wired';
-                                    $buttonIcon = $division->status === 'attention' ? 'fa-exclamation-circle' : ($division->status === 'on-track' ? 'fa-eye' : 'fa-chart-bar');
-                                    $buttonText = $division->status === 'attention' ? 'Review' : ($division->status === 'on-track' ? 'View' : 'Analytics');
-                                @endphp
+                                @forelse($pics as $pic)
                                 <tr>
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
-                                            <div class="division-icon me-3">
-                                                <div class="icon-wrapper p-2 rounded-circle" style="background-color: {{ $colors['icon-bg'] }};">
-                                                    <i class="fas {{ $divisionIcon }}" style="color: {{ $colors['text'] }};"></i>
+                                            <div class="pic-avatar me-3">
+                                                <div class="avatar-circle bg-light border p-2 rounded-circle text-center" style="width: 40px; height: 40px; line-height: 24px;">
+                                                    <span class="fw-bold text-primary small">{{ strtoupper(substr($pic->name, 0, 2)) }}</span>
                                                 </div>
                                             </div>
                                             <div>
-                                                <strong class="d-block">{{ $division->name }}</strong>
-                                                <small class="text-muted">{{ $division->active_projects }} proyek aktif</small>
+                                                <strong class="d-block">{{ $pic->name }}</strong>
+                                                <small class="text-muted">{{ $pic->division->name ?? 'Tanpa Divisi' }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="progress-wrapper" style="min-width: 150px;">
+                                        <div class="text-truncate" style="max-width: 150px;" title="{{ $pic->latest_task }}">
+                                            <span class="small fw-bold text-dark">{{ $pic->latest_task }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress-wrapper" style="min-width: 120px;">
                                             <div class="d-flex justify-content-between mb-1">
-                                                <small>{{ $division->avg_progress }}%</small>
-                                                <small>100%</small>
+                                                <small class="small">{{ $pic->avg_progress }}%</small>
                                             </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar" role="progressbar" 
-                                                     style="width: {{ $division->avg_progress }}%; background-color: {{ $colors['text'] }};" aria-valuenow="{{ $division->avg_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-{{ $pic->status_color }}" role="progressbar" 
+                                                     style="width: {{ $pic->avg_progress }}%;" aria-valuenow="{{ $pic->avg_progress }}" aria-valuemin="0" aria-valuemax="100">
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: {{ $colors['bg'] }}; color: {{ $colors['text'] }}; border: 1px solid {{ $colors['border'] }}; border-opacity: 0.25;">
-                                            <i class="fas {{ $division->status_icon }} me-1"></i>{{ $division->status_label }}
+                                        <span class="badge bg-{{ $pic->status_color }} bg-opacity-10 text-{{ $pic->status_color }} border border-{{ $pic->status_color }} border-opacity-25 px-2 py-1 rounded">
+                                            <i class="fas {{ $pic->status_icon }} me-1 small"></i>{{ $pic->status_label }}
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <button class="btn btn-sm division-action-btn" data-status="{{ $division->status }}" style="border: 1px solid {{ $colors['border'] }}; color: {{ $colors['text'] }};">
-                                            <i class="fas {{ $buttonIcon }} me-1"></i>{{ $buttonText }}
-                                        </button>
+                                        <a href="{{ route('supervisor.monitoring') }}?pic={{ $pic->id }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                            <i class="fas fa-eye me-1"></i>Cek
+                                        </a>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="text-center py-4">
-                                        <p class="text-muted mb-0">Tidak ada divisi yang aktif</p>
+                                    <td colspan="5" class="text-center py-4">
+                                        <p class="text-muted mb-0">Belum ada PIC yang terdaftar</p>
                                     </td>
                                 </tr>
                                 @endforelse
@@ -215,8 +202,8 @@
                 
                 <div class="card-footer bg-white border-0 py-3">
                     <div class="d-flex justify-content-end">
-                        <a href="#" class="btn btn-outline-primary">
-                            <i class="fas fa-list me-1"></i>Lihat Semua Divisi
+                        <a href="{{ route('supervisor.monitoring') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-1"></i>Monitor Semua Laporan
                         </a>
                     </div>
                 </div>
