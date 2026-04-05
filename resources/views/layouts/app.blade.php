@@ -511,12 +511,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/pic/report/history">
-                    <i class="fas fa-history"></i>
-                    <span>Riwayat Laporan</span>
-                </a>
-             </li>
-            <li class="nav-item">
                 <a class="nav-link" href="/pic/daily-report">
                     <i class="fas fa-calendar-day"></i>
                     <span>Daily report</span>
@@ -528,6 +522,12 @@
                     <span>Daftar Tugas</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/pic/report/history">
+                    <i class="fas fa-history"></i>
+                    <span>Riwayat Laporan</span>
+                </a>
+             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/pic/profile">
                     <i class="fas fa-user-cog"></i>

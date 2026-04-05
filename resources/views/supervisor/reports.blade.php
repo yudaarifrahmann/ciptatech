@@ -43,7 +43,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Total Laporan</h6>
-                            <h2 class="fw-bold mb-0">156</h2>
+                            <h2 class="fw-bold mb-0">{{ $total_reports }}</h2>
                             <small class="text-primary">
                                 <i class="fas fa-calendar me-1"></i>Bulan ini
                             </small>
@@ -60,9 +60,9 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Disetujui</h6>
-                            <h2 class="fw-bold mb-0">128</h2>
+                            <h2 class="fw-bold mb-0">{{ $approved_count }}</h2>
                             <small class="text-success">
-                                <i class="fas fa-chart-line me-1"></i>82% approval rate
+                                <i class="fas fa-chart-line me-1"></i>{{ $total_reports > 0 ? round(($approved_count / $total_reports) * 100) : 0 }}% approval rate
                             </small>
                         </div>
                         <div class="stat-icon">
@@ -77,7 +77,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Dalam Proses</h6>
-                            <h2 class="fw-bold mb-0">18</h2>
+                            <h2 class="fw-bold mb-0">{{ $pending_count }}</h2>
                             <small class="text-warning">
                                 <i class="fas fa-clock me-1"></i>Perlu review
                             </small>
@@ -94,7 +94,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Rata-rata Waktu</h6>
-                            <h2 class="fw-bold mb-0">2.3</h2>
+                            <h2 class="fw-bold mb-0">{{ $avg_response_time }}</h2>
                             <small class="text-info">
                                 <i class="fas fa-business-time me-1"></i>hari/respon
                             </small>
@@ -118,20 +118,19 @@
             <p class="text-muted small mb-0">Filter laporan berdasarkan kriteria tertentu</p>
         </div>
         <div class="card-body">
-            <form class="row g-3 mb-2" id="reportFilterForm">
+            <form action="{{ route('supervisor.reports') }}" method="GET" class="row g-3 mb-2" id="reportFilterForm">
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label fw-bold mb-1">
                         <i class="fas fa-building me-1 text-primary"></i>
                         Divisi
                     </label>
-                    <select class="form-select border-1 shadow-sm">
+                    <select class="form-select border-1 shadow-sm" name="division_id">
                         <option selected>Semua Divisi</option>
-                        <option>Multimedia</option>
-                        <option>Software Host</option>
-                        <option>IT Support</option>
-                        <option>Network</option>
-                        <option>Hardware</option>
-                        <option>Security</option>
+                        @foreach($divisions as $division)
+                            <option value="{{ $division->id }}" {{ request('division_id') == $division->id ? 'selected' : '' }}>
+                                {{ $division->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -141,7 +140,7 @@
                         Dari Tanggal
                     </label>
                     <div class="input-group">
-                        <input type="date" class="form-control border-1 shadow-sm" value="2026-01-01">
+                        <input type="date" class="form-control border-1 shadow-sm" name="date_from" value="{{ request('date_from') }}">
                         <span class="input-group-text bg-transparent">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
@@ -154,7 +153,7 @@
                         Sampai Tanggal
                     </label>
                     <div class="input-group">
-                        <input type="date" class="form-control border-1 shadow-sm" value="2026-01-03">
+                        <input type="date" class="form-control border-1 shadow-sm" name="date_to" value="{{ request('date_to') }}">
                         <span class="input-group-text bg-transparent">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
@@ -166,12 +165,13 @@
                         <i class="fas fa-tag me-1 text-primary"></i>
                         Status
                     </label>
-                    <select class="form-select border-1 shadow-sm">
+                    <select class="form-select border-1 shadow-sm" name="status">
                         <option selected>Semua Status</option>
-                        <option>Disetujui</option>
-                        <option>Menunggu Review</option>
-                        <option>Revisi</option>
-                        <option>Ditolak</option>
+                        @foreach(['Disetujui', 'Menunggu Review', 'Revisi', 'Ditolak'] as $status)
+                            <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
+                                {{ $status }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 
@@ -180,13 +180,13 @@
                         <i class="fas fa-user me-1 text-primary"></i>
                         PIC
                     </label>
-                    <select class="form-select border-1 shadow-sm">
+                    <select class="form-select border-1 shadow-sm" name="pic_id">
                         <option selected>Semua PIC</option>
-                        <option>Andi</option>
-                        <option>Budi</option>
-                        <option>Siti</option>
-                        <option>Cici</option>
-                        <option>Dodi</option>
+                        @foreach($pics as $pic)
+                            <option value="{{ $pic->id }}" {{ request('pic_id') == $pic->id ? 'selected' : '' }}>
+                                {{ $pic->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 
@@ -196,7 +196,7 @@
                         Kata Kunci
                     </label>
                     <div class="input-group">
-                        <input type="text" class="form-control border-1 shadow-sm" placeholder="Cari tugas atau deskripsi...">
+                        <input type="text" class="form-control border-1 shadow-sm" name="search" placeholder="Cari tugas atau deskripsi..." value="{{ request('search') }}">
                         <span class="input-group-text bg-transparent">
                             <i class="fas fa-search"></i>
                         </span>
@@ -209,10 +209,10 @@
                             <i class="fas fa-filter me-1"></i>
                             Terapkan Filter
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" id="resetFilter">
+                        <a href="{{ route('supervisor.reports') }}" class="btn btn-outline-secondary" id="resetFilter">
                             <i class="fas fa-redo me-1"></i>
                             Reset
-                        </button>
+                        </a>
                     </div>
                 </div>
             </form>
@@ -266,201 +266,101 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @forelse($tasks as $task)
                         <tr>
                             <td class="ps-4">
                                 <div class="d-flex flex-column">
-                                    <strong class="mb-1">2026-01-03</strong>
-                                    <small class="text-muted">14:30 WIB</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="division-icon me-2">
-                                        <div class="icon-wrapper bg-warning bg-opacity-10 p-1 rounded-circle">
-                                            <i class="fas fa-server text-warning fa-sm"></i>
-                                        </div>
-                                    </div>
-                                    <strong>Software Host</strong>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="task-info">
-                                    <strong class="d-block mb-1">Deploy Aplikasi</strong>
-                                    <small class="text-muted">Update versi 2.1.0 ke production</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="pic-info">
-                                    <div class="avatar-placeholder bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                        <i class="fas fa-user text-warning"></i>
-                                    </div>
-                                    <div class="d-inline-block">
-                                        <strong>Siti</strong>
-                                        <div class="text-muted small">DevOps Engineer</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="progress-wrapper" style="min-width: 100px;">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="fw-bold">100%</small>
-                                    </div>
-                                    <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar bg-success" role="progressbar" 
-                                             style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-                                    <i class="fas fa-check-circle me-1"></i> Disetujui
-                                </span>
-                                <div class="text-muted small mt-1">Oleh: Admin • 2 jam lalu</div>
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="tooltip" title="Lihat Detail">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-outline-info btn-sm" data-bs-toggle="tooltip" title="Download Laporan">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Cetak">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Additional sample rows -->
-                        <tr>
-                            <td class="ps-4">
-                                <div class="d-flex flex-column">
-                                    <strong class="mb-1">2026-01-02</strong>
-                                    <small class="text-muted">10:15 WIB</small>
+                                    <strong class="mb-1">{{ $task->created_at->format('Y-m-d') }}</strong>
+                                    <small class="text-muted">{{ $task->created_at->format('H:i') }} WIB</small>
                                 </div>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="division-icon me-2">
                                         <div class="icon-wrapper bg-primary bg-opacity-10 p-1 rounded-circle">
-                                            <i class="fas fa-photo-video text-primary fa-sm"></i>
+                                            <i class="fas fa-building text-primary fa-sm"></i>
                                         </div>
                                     </div>
-                                    <strong>Multimedia</strong>
+                                    <strong>{{ $task->division->name ?? 'N/A' }}</strong>
                                 </div>
                             </td>
                             <td>
                                 <div class="task-info">
-                                    <strong class="d-block mb-1">Video Tutorial Produk</strong>
-                                    <small class="text-muted">Editing final dan subtitles</small>
+                                    <strong class="d-block mb-1">{{ $task->title }}</strong>
+                                    <small class="text-muted">{{ Str::limit($task->description, 50) }}</small>
                                 </div>
                             </td>
                             <td>
                                 <div class="pic-info">
-                                    <div class="avatar-placeholder bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                        <i class="fas fa-user text-primary"></i>
+                                    <div class="avatar-placeholder bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <i class="fas fa-user text-info"></i>
                                     </div>
                                     <div class="d-inline-block">
-                                        <strong>Andi</strong>
-                                        <div class="text-muted small">Video Editor</div>
+                                        <strong>{{ $task->latestSubmission->pic->name ?? 'Belum ada' }}</strong>
+                                        <div class="text-muted small">{{ $task->latestSubmission->pic->role ?? '-' }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
+                                @php
+                                    $progress = 0;
+                                    if ($task->status == 'approved') $progress = 100;
+                                    elseif ($task->status == 'submitted') $progress = 80;
+                                    elseif ($task->status == 'in_progress') $progress = 40;
+                                    elseif ($task->status == 'assigned') $progress = 20;
+                                @endphp
                                 <div class="progress-wrapper" style="min-width: 100px;">
                                     <div class="d-flex justify-content-between mb-1">
-                                        <small class="fw-bold">85%</small>
+                                        <small class="fw-bold">{{ $progress }}%</small>
                                     </div>
                                     <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar bg-info" role="progressbar" 
-                                             style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
+                                        <div class="progress-bar {{ $progress == 100 ? 'bg-success' : ($progress >= 80 ? 'bg-info' : 'bg-primary') }}" role="progressbar" 
+                                             style="width: {{ $progress }}%" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">
                                         </div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-2 rounded-pill">
-                                    <i class="fas fa-clock me-1"></i> Menunggu Review
+                                @php
+                                    $statusClasses = [
+                                        'pending' => 'bg-secondary text-white',
+                                        'assigned' => 'bg-info text-white',
+                                        'in_progress' => 'bg-primary text-white',
+                                        'submitted' => 'bg-warning text-dark',
+                                        'approved' => 'bg-success text-white',
+                                        'rejected' => 'bg-danger text-white',
+                                    ];
+                                    $statusLabels = [
+                                        'pending' => 'Pending',
+                                        'assigned' => 'Ditugaskan',
+                                        'in_progress' => 'Progres',
+                                        'submitted' => 'Menunggu Review',
+                                        'approved' => 'Disetujui',
+                                        'rejected' => 'Ditolak/Revisi',
+                                    ];
+                                @endphp
+                                <span class="badge {{ $statusClasses[$task->status] ?? 'bg-secondary' }} px-3 py-2 rounded-pill">
+                                    {{ $statusLabels[$task->status] ?? $task->status }}
                                 </span>
-                                <div class="text-muted small mt-1">Sudah 1 hari</div>
                             </td>
                             <td class="text-end pe-4">
                                 <div class="btn-group" role="group">
-                                    <button class="btn btn-outline-primary btn-sm">
+                                    <a href="{{ route('supervisor.monitoring.show', $task->id) }}" class="btn btn-outline-primary btn-sm" data-bs-toggle="tooltip" title="Lihat Detail">
                                         <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm">
-                                        <i class="fas fa-check-circle"></i>
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
-                        
+                        @empty
                         <tr>
-                            <td class="ps-4">
-                                <div class="d-flex flex-column">
-                                    <strong class="mb-1">2026-01-01</strong>
-                                    <small class="text-muted">16:45 WIB</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="division-icon me-2">
-                                        <div class="icon-wrapper bg-success bg-opacity-10 p-1 rounded-circle">
-                                            <i class="fas fa-headset text-success fa-sm"></i>
-                                        </div>
-                                    </div>
-                                    <strong>IT Support</strong>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="task-info">
-                                    <strong class="d-block mb-1">Maintenance Server</strong>
-                                    <small class="text-muted">Backup database rutin</small>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="pic-info">
-                                    <div class="avatar-placeholder bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                        <i class="fas fa-user text-success"></i>
-                                    </div>
-                                    <div class="d-inline-block">
-                                        <strong>Budi</strong>
-                                        <div class="text-muted small">System Admin</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="progress-wrapper" style="min-width: 100px;">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="fw-bold">100%</small>
-                                    </div>
-                                    <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar bg-success" role="progressbar" 
-                                             style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-                                    <i class="fas fa-check-circle me-1"></i> Disetujui
-                                </span>
-                                <div class="text-muted small mt-1">Oleh: Supervisor • 2 hari lalu</div>
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-outline-info btn-sm">
-                                        <i class="fas fa-download"></i>
-                                    </button>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-file-circle-xmark fa-3x mb-3 d-block"></i>
+                                    <p class="mb-0">Tidak ada laporan ditemukan</p>
                                 </div>
                             </td>
                         </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -469,27 +369,11 @@
         <div class="card-footer bg-white border-0 py-3">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                 <div class="mb-2 mb-md-0">
-                    <p class="text-muted small mb-0">Menampilkan 3 dari 156 laporan</p>
+                    <p class="text-muted small mb-0">Menampilkan {{ $tasks->firstItem() ?? 0 }} sampai {{ $tasks->lastItem() ?? 0 }} dari {{ $tasks->total() }} laporan</p>
                 </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" aria-label="Previous">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">4</a></li>
-                        <li class="page-item"><a class="page-link" href="#">5</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#" aria-label="Next">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                <div class="pagination-wrapper">
+                    {{ $tasks->links() }}
+                </div>
             </div>
         </div>
     </div>
@@ -516,7 +400,7 @@
                         <i class="fas fa-clock text-success me-2 fa-lg"></i>
                         <div>
                             <small class="fw-bold d-block">Waktu Respon</small>
-                            <small class="text-muted">Rata-rata: 2.3 hari per laporan</small>
+                            <small class="text-muted">Rata-rata: {{ $avg_response_time }} hari per laporan</small>
                         </div>
                     </div>
                 </div>
@@ -779,15 +663,7 @@
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
         
-        const resetFilterBtn = document.getElementById('resetFilter');
-        if (resetFilterBtn) {
-            resetFilterBtn.addEventListener('click', function() {
-                const form = document.getElementById('reportFilterForm');
-                form.reset();
-                console.log('Filter reset');
-                
-            });
-        }
+        // Reset is now handled by an <a> tag redirecting to the route
         
         const filterForm = document.getElementById('reportFilterForm');
         if (filterForm) {

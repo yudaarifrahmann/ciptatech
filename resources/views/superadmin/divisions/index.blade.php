@@ -46,6 +46,7 @@
                                 <th>Nama Divisi</th>
                                 <th>Deskripsi</th>
                                 <th style="width: 120px;">Status</th>
+                                <th>Supervisor</th>
                                 <th style="width: 150px;">Aksi</th>
                             </tr>
                         </thead>
@@ -78,11 +79,20 @@
                                     @endif
                                 </td>
                                 <td>
+                                    @forelse ($division->supervisors as $supervisor)
+                                        <span class="badge bg-info bg-opacity-10 text-info me-1 py-1">
+                                            {{ $supervisor->name }}
+                                        </span>
+                                    @empty
+                                        <small class="text-muted">Belum ada supervisor</small>
+                                    @endforelse
+                                </td>
+                                <td>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button type="button" class="btn btn-outline-primary" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#editDivisionModal"
-                                                onclick="editDivision({{ $division->id }}, '{{ $division->name }}', '{{ $division->description }}', {{ $division->is_active ? 'true' : 'false' }})">
+                                                onclick='editDivision({{ $division->id }}, "{{ $division->name }}", "{{ $division->description }}", {{ $division->is_active ? "true" : "false" }}, {{ $division->supervisors->pluck("id") }})'>
                                             <i class="fas fa-edit me-1"></i>Edit
                                         </button>
                                         <form method="POST" action="{{ route('superadmin.divisions.destroy', $division->id) }}" 
@@ -135,7 +145,7 @@
                         <textarea class="form-control" id="description" name="description" 
                                   rows="3" placeholder="Masukkan deskripsi divisi (opsional)"></textarea>
                     </div>
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="is_active" 
                                    name="is_active" value="1" checked>
@@ -143,6 +153,25 @@
                                 Aktifkan divisi
                             </label>
                         </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="mb-0">
+                        <label class="form-label fw-bold mb-2">Pilih Supervisor</label>
+                        <div class="supervisor-list border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                            @foreach ($supervisors as $supervisor)
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="supervisor_ids[]" 
+                                           value="{{ $supervisor->id }}" id="spv_create_{{ $supervisor->id }}">
+                                    <label class="form-check-label small d-flex justify-content-between w-100" for="spv_create_{{ $supervisor->id }}">
+                                        <span>{{ $supervisor->name }}</span>
+                                        @if($supervisor->division)
+                                            <span class="text-muted">({{ $supervisor->division->name }})</span>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <small class="text-muted mt-2 d-block">Supervisor yang dipilih akan dipindahkan ke divisi ini.</small>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-top-0">
@@ -178,7 +207,7 @@
                         <label for="editDescription" class="form-label fw-bold">Deskripsi</label>
                         <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
                     </div>
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="editIsActive" 
                                    name="is_active" value="1">
@@ -186,6 +215,27 @@
                                 Aktifkan divisi
                             </label>
                         </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="mb-0">
+                        <label class="form-label fw-bold mb-2">Pilih Supervisor</label>
+                        <div class="supervisor-list border rounded p-2" id="editSupervisorList" style="max-height: 200px; overflow-y: auto;">
+                            @foreach ($supervisors as $supervisor)
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input edit-supervisor-check" type="checkbox" name="supervisor_ids[]" 
+                                           value="{{ $supervisor->id }}" id="spv_edit_{{ $supervisor->id }}">
+                                    <label class="form-check-label small d-flex justify-content-between w-100" for="spv_edit_{{ $supervisor->id }}">
+                                        <span>{{ $supervisor->name }}</span>
+                                        @if($supervisor->division)
+                                            <span class="text-muted division-label" data-division-id="{{ $supervisor->division_id }}">({{ $supervisor->division->name }})</span>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <small class="text-muted mt-2 d-block text-warning small">
+                            <i class="fas fa-info-circle me-1"></i> Supervisor yang dipilih akan dipindahkan ke divisi ini.
+                        </small>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-top-0">
@@ -218,11 +268,17 @@
 </style>
 
 <script>
-    function editDivision(id, name, description, isActive) {
+    function editDivision(id, name, description, isActive, supervisorIds) {
         document.getElementById('editName').value = name;
         document.getElementById('editDescription').value = description || '';
         document.getElementById('editIsActive').checked = isActive;
         document.getElementById('editForm').action = `/superadmin/divisions/${id}`;
+        
+        // Reset and Set Supervisors
+        const checkboxes = document.querySelectorAll('.edit-supervisor-check');
+        checkboxes.forEach(cb => {
+            cb.checked = supervisorIds.includes(parseInt(cb.value));
+        });
     }
 </script>
 

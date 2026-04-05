@@ -28,4 +28,12 @@ class Division extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    /**
+     * Get the supervisors for the division.
+     */
+    public function supervisors()
+    {
+        return $this->hasMany(User::class)->where('role', 'supervisor');
+    }
 }

@@ -53,7 +53,7 @@ class MonitoringController extends Controller
 
         $task->update([
             'feedback' => $request->feedback,
-            'status'   => 'review'
+            'status'   => 'revisi' // Changed from 'review' to 'revisi' for consistency
         ]);
 
         return back()->with('success','Feedback dikirim');
@@ -68,12 +68,12 @@ class MonitoringController extends Controller
     // PERBAIKAN: Ganti Task menjadi TaskReport
     $task = \App\Models\TaskReport::findOrFail($id);
 
-    // Sesuaikan dengan kolom di database Anda (sepertinya 'feedback')
     $task->update([
-        'feedback' => $request->comment 
+        'feedback' => $request->comment,
+        'status'   => 'revisi' // Update status to revisi as per user request
     ]);
 
-    return back()->with('success', 'Komentar berhasil ditambahkan!');
+    return back()->with('success', 'Komentar berhasil ditambahkan dan status diperbarui menjadi Revisi/Perbaikan!');
 }
 
     public function revision(Request $request, TaskReport $task)
@@ -84,10 +84,10 @@ class MonitoringController extends Controller
 
         $task->update([
             'revision_note' => $request->note,
-            'status'        => 'revision'
+            'status'        => 'revisi' // Changed from 'revision' to 'revisi' for consistency
         ]);
 
-        return back()->with('success','Revisi diminta');
+        return back()->with('success','Revisi/Perbaikan diminta');
     }
 
     public function updateStatus(Request $request, TaskReport $task)

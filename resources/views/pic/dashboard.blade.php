@@ -65,7 +65,7 @@
                         </div>
                     </div>
                     <div class="stats-content">
-                        <h6 class="text-muted mb-1">Revisi</h6>
+                        <h6 class="text-muted mb-1">Perbaikan</h6>
                         <p class="display-6 fw-bold mb-0 text-danger">
     {{ $stats['revisi'] }}
 </p>
@@ -135,7 +135,8 @@
             $statusMap = [
                 'progress' => ['info', 'Progress'],
                 'menunggu review' => ['warning', 'Menunggu Review'],
-                'revisi' => ['danger', 'Revisi'],
+                'revisi' => ['danger', 'Perbaikan'],
+                'perbaikan' => ['danger', 'Perbaikan'],
                 'selesai' => ['success', 'Selesai'],
             ];
 

@@ -31,7 +31,7 @@ class TaskReportController extends Controller
         
         // Tambah validasi github_link hanya jika dari divisi Software Host
         if ($isSoftwareHost) {
-            $rules['github_link'] = 'nullable|url|regex:/https:\/\/.*github\.com\/.*/'
+            $rules['github_link'] = 'nullable|url|regex:/https:\/\/.*github\.com\/.*/';
         }
         
         $request->validate($rules);

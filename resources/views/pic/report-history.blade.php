@@ -94,8 +94,8 @@
                 <div class="stat-card bg-white rounded-3 p-3 shadow-sm border-start border-4 border-danger">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-1">Progress</h6>
-<h3 class="fw-bold mb-0">{{ $stats['progress'] }}</h3>
+                            <h6 class="text-muted mb-1">Perbaikan</h6>
+                            <h3 class="fw-bold mb-0">{{ $stats['revisi'] }}</h3>
                         </div>
                         <div class="stat-icon">
                             <i class="fas fa-redo fa-2x text-danger opacity-75"></i>
@@ -189,6 +189,8 @@
                 'draft' => ['secondary', 'Draft'],
                 'progress' => ['info', 'Progress'],
                 'menunggu review' => ['warning', 'Menunggu Review'],
+                'revisi' => ['danger', 'Perbaikan'],
+                'perbaikan' => ['danger', 'Perbaikan'],
                 'selesai' => ['success', 'Selesai'],
             ];
             [$color, $label] = $statusMap[$report->status];
@@ -211,7 +213,7 @@
     {{-- AKSI --}}
     <td class="text-end pe-4">
         <div class="btn-group">
-            <a href="#" class="btn btn-outline-primary btn-sm">
+            <a href="{{ route('pic.report.show', $report->id) }}" class="btn btn-outline-primary btn-sm">
                 <i class="fas fa-eye"></i>
             </a>
 
@@ -222,8 +224,8 @@
             </a>
             @endif
 
-            @if ($report->status !== 'selesai')
-            <a href="#" class="btn btn-outline-warning btn-sm">
+            @if ($report->status !== 'selesai' && $report->status !== 'menunggu review')
+            <a href="{{ route('pic.report.edit', $report->id) }}" class="btn btn-outline-warning btn-sm">
                 <i class="fas fa-edit"></i>
             </a>
             @endif

@@ -14,7 +14,7 @@ class DashboardController extends Controller
 
         $stats = [
             'aktif' => TaskReport::where('user_id', $userId)
-                        ->whereIn('status', ['progress', 'menunggu review'])
+                        ->whereIn('status', ['progress', 'menunggu review', 'revisi', 'perbaikan'])
                         ->count(),
 
             'review' => TaskReport::where('user_id', $userId)

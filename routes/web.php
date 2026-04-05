@@ -25,13 +25,14 @@ use App\Http\Controllers\Superadmin\MonitoringController as SuperadminMonitoring
 use App\Http\Controllers\Superadmin\UserController as SuperadminUserController;
 use App\Http\Controllers\Superadmin\DashboardController as SuperadminDashboardController;
 use App\Http\Controllers\Superadmin\ProfileController as SuperadminProfileController;
+use App\Http\Controllers\LandingController;
 
 /*
 |--------------------------------------------------------------------------
 | ROOT
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => redirect()->route('login'));
+Route::get('/', [LandingController::class, 'index'])->name('landing');
 
 /*
 |--------------------------------------------------------------------------
@@ -70,6 +71,15 @@ Route::middleware(['auth', 'role:PIC'])
 
         Route::get('/report/history', [PicReportController::class, 'history'])
             ->name('report.history');
+
+        Route::get('/report/{id}', [PicReportController::class, 'show'])
+            ->name('report.show');
+
+        Route::get('/report/{id}/edit', [PicReportController::class, 'edit'])
+            ->name('report.edit');
+
+        Route::put('/report/{id}', [PicReportController::class, 'update'])
+            ->name('report.update');
 
         // PROFILE
         Route::get('/profile', [ProfileController::class, 'index'])
@@ -292,4 +302,7 @@ Route::middleware(['auth', 'role:superadmin'])
 
         Route::get('/monitoring', [SuperadminMonitoringController::class, 'index'])
             ->name('monitoring');
+
+        Route::get('/audit', [\App\Http\Controllers\Superadmin\AuditController::class, 'index'])
+            ->name('audit');
     });
